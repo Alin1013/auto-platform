@@ -1,7 +1,7 @@
 # Auto-platform
 
 #### 介绍
-基于python+Django+Vue3+pytest的自动化测试平台搭建
+基于python+Django+Vue3+pytest的前后端分离的自动化测试平台搭建
 
 #### 软件架构
 软件架构说明
