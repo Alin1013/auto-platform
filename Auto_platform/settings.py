@@ -55,6 +55,23 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# 允许跨域
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",  # Vue前端地址
+]
+
+# 测试报告存储路径
+REPORT_ROOT = os.path.join(BASE_DIR, 'reports')
+if not os.path.exists(REPORT_ROOT):
+    os.makedirs(REPORT_ROOT)
+
+# REST Framework配置
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
+
 ROOT_URLCONF = 'Auto_platform.urls'
 
 TEMPLATES = [
