@@ -5,24 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5669c669-0418-4f91-b69a-3fe4c913ed98" name="更改" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/backend/backend/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/backend/backend/asgi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/backend/backend/settings.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/backend/backend/urls.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/backend/backend/wsgi.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/backend/manage.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/f2py.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/faker.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/filetype.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/jsonschema.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/margins.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/normalizer.exe" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.venv/Scripts/runxlrd.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.venv/Scripts/pip.exe" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/Scripts/pip.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.venv/Scripts/pip3.10.exe" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/Scripts/pip3.10.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.venv/Scripts/pip3.exe" beforeDir="false" afterPath="$PROJECT_DIR$/.venv/Scripts/pip3.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -124,7 +107,7 @@
       <workItem from="1758002525466" duration="1123000" />
       <workItem from="1758003683301" duration="6653000" />
       <workItem from="1758013221595" duration="3843000" />
-      <workItem from="1758081246195" duration="1788000" />
+      <workItem from="1758081246195" duration="2564000" />
     </task>
     <task id="LOCAL-00001" summary="跨域">
       <option name="closed" value="true" />
