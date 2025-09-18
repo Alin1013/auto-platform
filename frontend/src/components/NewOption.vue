@@ -1,14 +1,18 @@
 <template>
   <div class="new-option-container">
-    <!-- 标题文字 -->
+    <!-- 背景图片 -->
+    <div class="bg-image">
+      <img src="@/assets/background.png" alt="新增选项页面背景" />
+    </div>
+    <!-- 标题 -->
     <h2 class="page-title">新增项目配置</h2>
 
-    <!-- 中间方框容器：承载测试类型选择和项目名称输入 -->
+    <!-- 中间表单容器 -->
     <div class="center-box">
       <div class="box-content">
         <h3>项目基础配置</h3>
 
-        <!-- 表单区域 -->
+        <!-- 项目表单 -->
         <form class="config-form" @submit.prevent="handleSubmit">
           <!-- 测试类型选择 -->
           <div class="form-item">
@@ -45,67 +49,71 @@
         </form>
       </div>
     </div>
+
+    <!-- 成功弹窗：通过showModal控制显示/隐藏 -->
+    <SuccessModal
+      v-if="showModal"
+      :project-name="projectName.trim()"
+      :on-confirm="handleModalConfirm"
+    />
   </div>
 </template>
 
 <script>
+// 1. 引入弹窗组件
+import SuccessModal from '@/components/SuccessModal.vue';
+
 export default {
   name: 'NewOption',
+  // 2. 注册弹窗组件
+  components: {
+    SuccessModal
+  },
   data() {
     return {
-      selectedTestType: '', // 初始值为空字符串，与下拉选项value匹配
-      projectName: ''       // 初始值为空字符串
+      selectedTestType: '', // 测试类型
+      projectName: '',      // 项目名称
+      showModal: false      // 弹窗显示状态：默认隐藏
     }
   },
   methods: {
+    // 表单提交逻辑
     handleSubmit() {
-      // 1. 严格校验表单：避免空值/空格提交
       const projectNameTrim = this.projectName.trim();
-      if (!projectNameTrim) {
-        alert('请输入有效的项目名称！');
-        return;
-      }
-      if (!this.selectedTestType) {
-        alert('请选择测试类型！');
+      // 表单校验
+      if (!projectNameTrim || !this.selectedTestType) {
+        alert('请完善项目名称和测试类型！');
         return;
       }
 
-      // 2. 组装项目数据（字段必须与HomePage读取的一致）
+      // 组装项目数据并存储到localStorage
       const newProject = {
-        id: Date.now(), // 唯一ID（时间戳，确保不重复）
-        name: projectNameTrim, // 去空格后的项目名
-        testType: this.selectedTestType, // 如"apiTest"
-        testTypeLabel: this.getTestTypeLabel(), // 如"接口测试"
-        createTime: new Date().toLocaleString() // 本地化时间
+        id: Date.now(),
+        name: projectNameTrim,
+        testType: this.selectedTestType,
+        testTypeLabel: this.getTestTypeLabel(),
+        createTime: new Date().toLocaleString()
       };
-
-      // 3. 读取已有项目：必须用JSON.parse，且兜底空数组
-      let existingProjects = localStorage.getItem('projects');
-      // 关键：若localStorage中没有"projects"，初始化为空数组
-      existingProjects = existingProjects ? JSON.parse(existingProjects) : [];
-
-      // 4. 新增项目并重新存入：必须用JSON.stringify转换
+      const existingProjects = JSON.parse(localStorage.getItem('projects') || '[]');
       existingProjects.push(newProject);
       localStorage.setItem('projects', JSON.stringify(existingProjects));
 
-      // 5. 调试验证：确认存储成功（打开F12→Application→LocalStorage查看）
-      console.log('存储到localStorage的数据：', existingProjects);
-      console.log('localStorage原始值：', localStorage.getItem('projects'));
+      // 3. 显示成功弹窗（替代原alert）
+      this.showModal = true;
+    },
 
-      // 6. 跳转回首页（确保路径与HomePage的路由path一致）
-      alert(`项目「${newProject.name}」创建成功！`);
+    // 弹窗确定按钮回调：跳转回HomePage
+    handleModalConfirm() {
       this.$router.push('/home');
     },
 
-    // 确保测试类型中文标签正确生成（无undefined）
+    // 获取测试类型中文标签
     getTestTypeLabel() {
-      // 严格匹配下拉选项的value值
       const typeMap = {
-        'apiTest': '接口测试',
-        'uiTest': 'UI测试',
-        'performanceTest': '性能测试'
+        apiTest: '接口测试',
+        uiTest: 'UI测试',
+        performanceTest: '性能测试'
       };
-      // 兜底：若类型不匹配，返回"未知测试类型"（避免undefined）
       return typeMap[this.selectedTestType] || '未知测试类型';
     }
   }
@@ -241,4 +249,5 @@ export default {
   font-size: 1.1rem;
   font-weight: bold;
 }
+
 </style>

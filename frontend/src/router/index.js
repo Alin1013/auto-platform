@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import LoginPage from '@/components/LoginPage.vue'
 import HomePage from '@/components/HomePage.vue'
 import NewOption from '@/components/NewOption.vue'
+import SuccessModal from '@/components/SuccessModal.vue'
 const router = createRouter({
   history: createWebHashHistory(), // 使用哈希路由
   routes: [
@@ -23,7 +24,12 @@ const router = createRouter({
       path: '/NewOption',
       name: 'NewOption',
       component: NewOption
-    }
+    },
+      {
+          path:'/SuccessModal',
+          name: 'SuccessModal',
+          component: SuccessModal
+      }
   ]
 })
 
