@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import LoginPage from '@/components/LoginPage.vue'
 import HomePage from '@/components/HomePage.vue'
-
+import NewOption from '@/components/NewOption.vue'
 const router = createRouter({
   history: createWebHashHistory(), // 使用哈希路由
   routes: [
@@ -18,6 +18,11 @@ const router = createRouter({
       path: '/home',
       name: 'HomePage',
       component: HomePage
+    },
+      {
+      path: '/NewOption',
+      name: 'NewOption',
+      component: NewOption
     }
   ]
 })
