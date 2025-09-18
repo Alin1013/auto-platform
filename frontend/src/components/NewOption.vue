@@ -53,37 +53,60 @@ export default {
   name: 'NewOption',
   data() {
     return {
-      // 绑定测试类型选择值
-      selectedTestType: '',
-      // 绑定项目名称输入值
-      projectName: ''
+      selectedTestType: '', // 初始值为空字符串，与下拉选项value匹配
+      projectName: ''       // 初始值为空字符串
     }
   },
   methods: {
-    // 处理表单提交逻辑
     handleSubmit() {
-      // 实际项目中可替换为接口请求（如调用后端创建项目接口）
-      const configData = {
-        testType: this.selectedTestType,
-        projectName: this.projectName
+      // 1. 严格校验表单：避免空值/空格提交
+      const projectNameTrim = this.projectName.trim();
+      if (!projectNameTrim) {
+        alert('请输入有效的项目名称！');
+        return;
       }
-      console.log('项目配置提交数据：', configData)
+      if (!this.selectedTestType) {
+        alert('请选择测试类型！');
+        return;
+      }
 
-      // 提交成功提示（后续可替换为路由跳转或弹窗反馈）
-      alert(`项目创建成功！\n测试类型：${this.getTestTypeLabel()}\n项目名称：${this.projectName}`)
+      // 2. 组装项目数据（字段必须与HomePage读取的一致）
+      const newProject = {
+        id: Date.now(), // 唯一ID（时间戳，确保不重复）
+        name: projectNameTrim, // 去空格后的项目名
+        testType: this.selectedTestType, // 如"apiTest"
+        testTypeLabel: this.getTestTypeLabel(), // 如"接口测试"
+        createTime: new Date().toLocaleString() // 本地化时间
+      };
 
-      // 重置表单
-      this.selectedTestType = ''
-      this.projectName = ''
+      // 3. 读取已有项目：必须用JSON.parse，且兜底空数组
+      let existingProjects = localStorage.getItem('projects');
+      // 关键：若localStorage中没有"projects"，初始化为空数组
+      existingProjects = existingProjects ? JSON.parse(existingProjects) : [];
+
+      // 4. 新增项目并重新存入：必须用JSON.stringify转换
+      existingProjects.push(newProject);
+      localStorage.setItem('projects', JSON.stringify(existingProjects));
+
+      // 5. 调试验证：确认存储成功（打开F12→Application→LocalStorage查看）
+      console.log('存储到localStorage的数据：', existingProjects);
+      console.log('localStorage原始值：', localStorage.getItem('projects'));
+
+      // 6. 跳转回首页（确保路径与HomePage的路由path一致）
+      alert(`项目「${newProject.name}」创建成功！`);
+      this.$router.push('/home');
     },
-    // 辅助方法：根据选中的value获取测试类型中文标签
+
+    // 确保测试类型中文标签正确生成（无undefined）
     getTestTypeLabel() {
+      // 严格匹配下拉选项的value值
       const typeMap = {
-        apiTest: '接口测试',
-        uiTest: 'UI测试',
-        performanceTest: '性能测试'
-      }
-      return typeMap[this.selectedTestType] || ''
+        'apiTest': '接口测试',
+        'uiTest': 'UI测试',
+        'performanceTest': '性能测试'
+      };
+      // 兜底：若类型不匹配，返回"未知测试类型"（避免undefined）
+      return typeMap[this.selectedTestType] || '未知测试类型';
     }
   }
 }

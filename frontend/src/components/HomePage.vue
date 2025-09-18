@@ -5,13 +5,35 @@
       <img src="@/assets/background.png" alt="主页面背景" />
     </div>
     <!-- 标题文字 -->
-    <h2 class="page-title">首页</h2>
+    <h1 class="page-title">项目</h1>
 
     <!-- 中间方框容器 -->
     <div class="center-box">
       <div class="box-content">
         <h3>项目区域</h3>
-        <!-- 空项目添加按钮 -->
+
+        <!-- 横向滑动容器：显示滚动条 -->
+        <div class="project-scroll-container">
+          <!-- 渲染已有的项目 -->
+          <div class="project-list" v-if="projects.length > 0">
+            <div class="project-card" v-for="project in projects" :key="project.id">
+              <div class="card-header">
+                <span class="project-name">{{ project.name }}</span>
+                <span class="project-type">{{ project.testTypeLabel }}</span>
+              </div>
+              <div class="card-footer">
+                <span class="project-time">{{ project.createTime }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 无项目提示 -->
+          <div class="no-project" v-else>
+            暂无项目，点击下方按钮添加
+          </div>
+        </div>
+
+        <!-- 添加新项目按钮 -->
         <button class="add-item-btn" @click="handleAddItem">
           <i class="add-icon">+</i>
           <span>添加新项目</span>
@@ -24,66 +46,82 @@
 <script>
 export default {
   name: 'HomePage',
+  data() {
+    return {
+      projects: []
+    }
+  },
+  mounted() {
+    this.loadProjects();
+  },
+  watch: {
+    $route() {
+      this.loadProjects();
+    }
+  },
   methods: {
-    // 处理添加项目的逻辑
+    loadProjects() {
+      try {
+        const savedProjects = localStorage.getItem('projects');
+        this.projects = savedProjects ? JSON.parse(savedProjects) : [];
+      } catch (error) {
+        this.projects = [];
+        console.error('读取项目数据失败：', error);
+      }
+    },
     handleAddItem() {
-      // 跳转到新增项目部分
-      this.$router.push({ name: 'NewOption' });
+      this.$router.push('/NewOption');
     }
   }
 }
 </script>
 
 <style scoped>
-/* 容器：作为页面根容器，占满整个视口 */
 .home-container {
-  position: relative; /* 作为子元素定位的参考 */
-  width: 100vw; /* 宽度占满视口 */
-  height: 100vh; /* 高度占满视口 */
-  overflow: hidden; /* 防止图片溢出 */
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* 背景图片：自适应全屏且固定在底部，降低透明度 */
 .bg-image {
   position: absolute;
-  bottom: 0; /* 固定在页面最底端 */
+  bottom: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.7; /* 透明度设置，0-1之间，值越小越透明 */
+  opacity: 0.7;
 }
 
 .bg-image img {
-  width: 100%; /* 图片宽度自适应容器 */
-  height: 100%; /* 图片高度自适应容器 */
-  object-fit: cover; /* 保持图片比例，填满容器（超出部分裁剪） */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* 标题：顶部中央 */
 .page-title {
   position: absolute;
-  top: 20px; /* 距离顶部20px（可调整） */
+  top: 20px;
   left: 50%;
-  transform: translateX(-50%); /* 水平居中 */
-  margin: 0; /* 清除默认margin */
-  z-index: 10; /* 确保文字在图片上方 */
-  font-size: 2rem; /* 调整标题大小 */
-  color: #333; /* 标题颜色，确保在透明背景上清晰可见 */
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 10;
+  font-size: 2rem;
+  color: #333;
 }
 
-/* 中间方框样式 */
 .center-box {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* 完全居中 */
-  z-index: 10; /* 确保在背景之上 */
-  width: 60%; /* 宽度占屏幕的60%，可调整 */
-  max-width: 600px; /* 最大宽度限制 */
-  min-height: 300px; /* 最小高度 */
-  background-color: rgba(255, 255, 255, 0.9); /* 半透明白色背景 */
-  border-radius: 8px; /* 圆角 */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 阴影效果 */
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: 80%;
+  max-width: 1000px;
+  min-height: 320px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 24px;
 }
 
@@ -93,33 +131,138 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 24px;
 }
 
 .box-content h3 {
-  margin-bottom: 20px;
+  margin: 0;
   color: #555;
   font-size: 1.5rem;
 }
 
-/* 添加项目按钮样式 */
+/*滚动条*/
+.project-scroll-container {
+  width: 100%;
+  overflow-x: auto; /* 允许横向滚动 */
+  overflow-y: hidden; /* 隐藏纵向滚动 */
+  padding: 8px 0;
+  padding-bottom: 12px;
+}
+
+/* 自定义滚动条样式（Chrome/Safari） */
+.project-scroll-container::-webkit-scrollbar {
+  height: 8px; /* 滚动条高度 */
+}
+
+/* 滚动条轨道 */
+.project-scroll-container::-webkit-scrollbar-track {
+  background: #f1f1f1; /* 轨道背景色 */
+  border-radius: 10px; /* 轨道圆角 */
+}
+
+/* 滚动条滑块 */
+.project-scroll-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1; /* 滑块颜色 */
+  border-radius: 10px; /* 滑块圆角 */
+  transition: background 0.3s;
+}
+
+/* 滑块hover效果 */
+.project-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1; /* 滑块hover颜色加深 */
+}
+
+/* Firefox滚动条样式 */
+.project-scroll-container {
+  scrollbar-width: thin; /* 滚动条宽度：细 */
+  scrollbar-color: #c1c1c1 #f1f1f1; /* 滑块颜色 轨道颜色 */
+}
+
+/* 横向项目列表 */
+.project-list {
+  display: flex;
+  gap: 16px;
+  width: max-content; /* 宽度自适应内容 */
+  padding: 10px 0;
+}
+
+/* 项目卡片样式 */
+.project-card {
+  width: 280px;
+  min-height: 120px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.3s;
+  text-align: center;
+}
+
+.project-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* 增加间距，视觉更清晰 */
+  align-items: center;
+}
+
+.project-name {
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.project-type {
+  font-size: 0.85rem;
+  color: #fff;
+  background-color: #42b983;
+  padding: 3px 10px;
+  border-radius: 12px;
+}
+
+.card-footer {
+  font-size: 0.8rem;
+  color: #888;
+  text-align: right;
+}
+
+.no-project {
+  color: #888;
+  font-size: 1rem;
+  padding: 40px 20px;
+  white-space: nowrap;
+}
+
 .add-item-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-  background-color: #42b983; /* 绿色背景 */
+  background-color: #42b983;
   color: white;
   border: none;
   border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
   transition: background-color 0.3s;
+  margin-top: 8px;
 }
 
 .add-item-btn:hover {
-  background-color: #359e75; /* hover时加深颜色 */
+  background-color: #359e75;
 }
 
 .add-icon {

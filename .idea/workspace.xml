@@ -6,10 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="5669c669-0418-4f91-b69a-3fe4c913ed98" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/HomePage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/HomePage.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/router/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/NewOption.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/NewOption.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,8 +25,8 @@
         <option value="HTML File" />
         <option value="Python Script" />
         <option value="package.json" />
-        <option value="Vue Composition API Component" />
         <option value="JavaScript File" />
+        <option value="Vue Composition API Component" />
       </list>
     </option>
   </component>
@@ -140,7 +138,7 @@
       <workItem from="1758013221595" duration="3843000" />
       <workItem from="1758081246195" duration="10920000" />
       <workItem from="1758102125590" duration="1252000" />
-      <workItem from="1758161719773" duration="10879000" />
+      <workItem from="1758161719773" duration="15750000" />
     </task>
     <task id="LOCAL-00001" summary="跨域">
       <option name="closed" value="true" />
