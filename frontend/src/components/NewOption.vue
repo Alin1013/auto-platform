@@ -25,7 +25,6 @@
               <option :value="''" disabled>请选择测试类型</option>
               <option value="apiTest">接口测试</option>
               <option value="uiTest">UI测试</option>
-              <option value="performanceTest">性能测试</option>
             </select>
           </div>
 
@@ -112,7 +111,6 @@ export default {
       const typeMap = {
         apiTest: '接口测试',
         uiTest: 'UI测试',
-        performanceTest: '性能测试'
       };
       return typeMap[this.selectedTestType] || '未知测试类型';
     }
