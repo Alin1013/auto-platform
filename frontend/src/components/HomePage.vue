@@ -174,12 +174,12 @@ handleDeleteProject(projectId) {
 
 .page-title {
   position: absolute;
-  top: 20px;
+  top: 50px;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
   z-index: 10;
-  font-size: 2rem;
+  font-size: 3rem;
   color: #333;
 }
 

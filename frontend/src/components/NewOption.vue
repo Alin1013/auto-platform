@@ -4,31 +4,29 @@
     <div class="bg-image">
       <img src="@/assets/background.png" alt="新增选项页面背景" />
     </div>
-    <!-- 标题 -->
+
+    <!-- 顶部标题：保持原有顶部居中 -->
     <h2 class="page-title">新增项目配置</h2>
 
     <!-- 中间表单容器 -->
     <div class="center-box">
       <div class="box-content">
-        <h3>项目基础配置</h3>
+        <!-- 1. 新增：标题容器（包裹返回按钮 + 项目基础配置标题） -->
+        <div class="title-wrapper">
+          <button class="back-btn" @click="handleGoBack">◀返回</button>
+          <h3>项目基础配置</h3>
+        </div>
 
         <!-- 项目表单 -->
         <form class="config-form" @submit.prevent="handleSubmit">
-          <!-- 测试类型选择 -->
           <div class="form-item">
             <label class="form-label">测试类型</label>
-            <select
-              v-model="selectedTestType"
-              class="form-control"
-              required
-            >
+            <select v-model="selectedTestType" class="form-control" required>
               <option :value="''" disabled>请选择测试类型</option>
               <option value="apiTest">接口测试</option>
               <option value="uiTest">UI测试</option>
             </select>
           </div>
-
-          <!-- 项目名称输入 -->
           <div class="form-item">
             <label class="form-label">项目名称</label>
             <input
@@ -39,8 +37,6 @@
               required
             />
           </div>
-
-          <!-- 提交按钮 -->
           <button type="submit" class="submit-btn">
             <span>确认创建</span>
           </button>
@@ -48,7 +44,7 @@
       </div>
     </div>
 
-    <!-- 成功弹窗：通过showModal控制显示/隐藏 -->
+    <!-- 成功弹窗 -->
     <SuccessModal
       v-if="showModal"
       :project-name="projectName.trim()"
@@ -58,33 +54,28 @@
 </template>
 
 <script>
-// 1. 引入弹窗组件
 import SuccessModal from '@/components/SuccessModal.vue';
 
 export default {
   name: 'NewOption',
-  // 2. 注册弹窗组件
-  components: {
-    SuccessModal
-  },
+  components: { SuccessModal },
   data() {
     return {
-      selectedTestType: '', // 测试类型
-      projectName: '',      // 项目名称
-      showModal: false      // 弹窗显示状态：默认隐藏
+      selectedTestType: '',
+      projectName: '',
+      showModal: false
     }
   },
   methods: {
-    // 表单提交逻辑
+    handleGoBack() {
+      this.$router.push('/home');
+    },
     handleSubmit() {
       const projectNameTrim = this.projectName.trim();
-      // 表单校验
       if (!projectNameTrim || !this.selectedTestType) {
         alert('请完善项目名称和测试类型！');
         return;
       }
-
-      // 组装项目数据并存储到localStorage
       const newProject = {
         id: Date.now(),
         name: projectNameTrim,
@@ -95,22 +86,13 @@ export default {
       const existingProjects = JSON.parse(localStorage.getItem('projects') || '[]');
       existingProjects.push(newProject);
       localStorage.setItem('projects', JSON.stringify(existingProjects));
-
-      // 3. 显示成功弹窗（替代原alert）
       this.showModal = true;
     },
-
-    // 弹窗确定按钮回调：跳转回HomePage
     handleModalConfirm() {
       this.$router.push('/home');
     },
-
-    // 获取测试类型中文标签
     getTestTypeLabel() {
-      const typeMap = {
-        apiTest: '接口测试',
-        uiTest: 'UI测试',
-      };
+      const typeMap = { apiTest: '接口测试', uiTest: 'UI测试' };
       return typeMap[this.selectedTestType] || '未知测试类型';
     }
   }
@@ -118,15 +100,12 @@ export default {
 </script>
 
 <style scoped>
-/* 容器：占满整个视口，作为子元素定位参考 */
 .new-option-container {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
 }
-
-/* 背景图片：全屏底部固定，半透明效果 */
 .bg-image {
   position: absolute;
   bottom: 0;
@@ -135,14 +114,11 @@ export default {
   height: 100%;
   opacity: 0.7;
 }
-
 .bg-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
-/* 页面标题：顶部居中，层级高于背景 */
 .page-title {
   position: absolute;
   top: 20px;
@@ -154,7 +130,6 @@ export default {
   color: #333;
 }
 
-/* 中间方框：居中显示，半透明白色背景 */
 .center-box {
   position: absolute;
   top: 50%;
@@ -175,37 +150,64 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; /* 让标题容器整体居中 */
   justify-content: center;
+  gap: 28px; /* 标题容器与表单的间距 */
 }
 
-.box-content h3 {
-  margin-bottom: 28px;
+/* 3标题容器：控制返回按钮在左上角，标题居中 */
+.title-wrapper {
+  width: 100%; /* 占满box-content宽度，确保标题能居中 */
+  display: flex;
+  align-items: center; /* 按钮与标题垂直对齐 */
+  position: relative; /* 作为返回按钮的定位参考 */
+}
+
+/* 返回按钮：固定在标题容器左上角 */
+.back-btn {
+  position: absolute;
+  left: 0; /* 容器最左侧 */
+  top: 50%;
+  transform: translateY(-50%); /* 垂直居中 */
+  background: transparent;
+  border: none;
+  color: #333;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+.back-btn:hover {
+  background-color: rgba(245, 245, 245, 0.8);
+}
+
+/* 5项目基础配置标题：在标题容器内居中 */
+.title-wrapper h3 {
+  margin: 0;
   color: #555;
   font-size: 1.5rem;
+  width: 100%; /* 占满容器宽度 */
+  text-align: center; /* 文字居中 */
 }
 
-/* 表单样式 */
 .config-form {
   width: 85%;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
-
 .form-item {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
 .form-label {
   color: #666;
   font-size: 1rem;
   font-weight: 500;
 }
-
 .form-control {
   padding: 10px 12px;
   border: 1px solid #ddd;
@@ -215,13 +217,10 @@ export default {
   outline: none;
   transition: border-color 0.3s;
 }
-
 .form-control:focus {
   border-color: #42b983;
   box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.2);
 }
-
-/* 提交按钮样式 */
 .submit-btn {
   display: flex;
   align-items: center;
@@ -237,14 +236,8 @@ export default {
   transition: background-color 0.3s;
   margin-top: 10px;
 }
-
 .submit-btn:hover {
   background-color: #359e75;
-}
-
-.submit-icon {
-  font-size: 1.1rem;
-  font-weight: bold;
 }
 
 </style>
