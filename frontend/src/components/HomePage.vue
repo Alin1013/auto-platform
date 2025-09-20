@@ -23,6 +23,9 @@
               </div>
               <div class="card-footer">
                 <span class="project-time">{{ project.createTime }}</span>
+                <button class="delete-btn" @click="handleDeleteProject(project.id)">
+                  <i class="delete-icon">×</i>
+                </button>
               </div>
             </div>
           </div>
@@ -40,15 +43,30 @@
         </button>
       </div>
     </div>
+
+    <!-- 弹窗组件：修复标签闭合 + 移除属性后注释 -->
+    <FailModal
+      :visible="modalVisible"
+      :message="modalMessage"
+      :type="modalType"
+      @close="modalVisible = false"
+    />
   </div>
 </template>
 
 <script>
+import FailModal from '@/components/FailModal.vue';
+
 export default {
   name: 'HomePage',
+  components: { FailModal },
   data() {
     return {
-      projects: []
+      projects: [],
+      // 合并弹窗状态（原 failModal 拆分为通用 modal 状态）
+      modalVisible: false,   // 控制弹窗显示/隐藏
+      modalMessage: '',      // 弹窗消息
+      modalType: 'fail'      // 弹窗类型（默认失败，可选 success）
     }
   },
   mounted() {
@@ -66,17 +84,53 @@ export default {
         this.projects = savedProjects ? JSON.parse(savedProjects) : [];
       } catch (error) {
         this.projects = [];
+        // 调用失败提示（传递 type: 'fail'）
+        this.showModal('读取项目数据失败：' + error.message, 'fail');
         console.error('读取项目数据失败：', error);
       }
     },
     handleAddItem() {
       this.$router.push('/NewOption');
+    },
+    handleDeleteProject(projectId) {
+      // 1. 先获取当前要删除的项目名称（用于成功提示文案）
+      const deleteProject = this.projects.find(p => p.id === projectId);
+      const projectName = deleteProject ? deleteProject.name : '未命名项目';
+
+      // 2. 确认删除
+      if (confirm(`确定要删除项目「${projectName}」吗？`)) {
+        try {
+          // 3. 执行删除逻辑
+          this.projects = this.projects.filter(project => project.id !== projectId);
+          localStorage.setItem('projects', JSON.stringify(this.projects));
+
+          // 4. 删除成功：调用成功提示（传递 type: 'success'）
+          this.showModal(`项目「${projectName}」删除成功！`, 'success');
+        } catch (error) {
+          // 5. 删除失败：恢复数据并调用失败提示
+          this.loadProjects();
+          this.showModal('删除项目失败：' + error.message, 'fail');
+          console.error('删除项目失败：', error);
+        }
+      }
+    },
+    // 新增：通用弹窗显示方法（支持成功/失败）
+    showModal(message, type) {
+      this.modalMessage = message;
+      this.modalType = type;
+      this.modalVisible = true;
+
+      // 3秒后自动关闭（保持原有自动关闭逻辑）
+      setTimeout(() => {
+        this.modalVisible = false;
+      }, 3000);
     }
   }
 }
 </script>
 
 <style scoped>
+/* 样式部分保持不变 */
 .home-container {
   position: relative;
   width: 100vw;
@@ -200,6 +254,7 @@ export default {
   justify-content: space-between;
   transition: transform 0.3s;
   text-align: center;
+  position: relative;
 }
 
 .project-card:hover {
@@ -236,6 +291,8 @@ export default {
   font-size: 0.8rem;
   color: #888;
   text-align: right;
+  position: relative;
+  padding-right: 30px; /* 为删除按钮留出空间 */
 }
 
 .no-project {
@@ -267,6 +324,34 @@ export default {
 
 .add-icon {
   font-size: 1.2rem;
+  font-weight: bold;
+}
+
+/* 删除按钮样式 */
+.delete-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: transparent;
+  border: none;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 1rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.delete-btn:hover {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+.delete-icon {
   font-weight: bold;
 }
 </style>
