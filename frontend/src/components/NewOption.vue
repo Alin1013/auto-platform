@@ -42,7 +42,6 @@
 
           <!-- 提交按钮 -->
           <button type="submit" class="submit-btn">
-            <i class="submit-icon">✓</i>
             <span>确认创建</span>
           </button>
         </form>

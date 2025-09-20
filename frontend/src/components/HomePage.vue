@@ -24,7 +24,7 @@
               <div class="card-footer">
                 <span class="project-time">{{ project.createTime }}</span>
                 <button class="delete-btn" @click="handleDeleteProject(project.id)">
-                  <i class="delete-icon">×</i>
+                  删除
                 </button>
               </div>
             </div>
@@ -44,12 +44,13 @@
       </div>
     </div>
 
-    <!-- 弹窗组件：修复标签闭合 + 移除属性后注释 -->
+    <!-- 失败提示模态框 -->
     <FailModal
       :visible="modalVisible"
       :message="modalMessage"
       :type="modalType"
       @close="modalVisible = false"
+      @confirm="handleModalConfirm"
     />
   </div>
 </template>
@@ -59,14 +60,16 @@ import FailModal from '@/components/FailModal.vue';
 
 export default {
   name: 'HomePage',
-  components: { FailModal },
+  components: {
+    FailModal  // 注册组件
+  },
   data() {
     return {
       projects: [],
-      // 合并弹窗状态（原 failModal 拆分为通用 modal 状态）
-      modalVisible: false,   // 控制弹窗显示/隐藏
-      modalMessage: '',      // 弹窗消息
-      modalType: 'fail'      // 弹窗类型（默认失败，可选 success）
+      modalVisible: false,
+      modalMessage: '',
+      modalType: 'fail',      // 模态框显示的消息
+      deleteProjectId: null
     }
   },
   mounted() {
@@ -84,48 +87,64 @@ export default {
         this.projects = savedProjects ? JSON.parse(savedProjects) : [];
       } catch (error) {
         this.projects = [];
-        // 调用失败提示（传递 type: 'fail'）
-        this.showModal('读取项目数据失败：' + error.message, 'fail');
+        this.showFailModal('读取项目数据失败：' + error.message);
         console.error('读取项目数据失败：', error);
       }
     },
     handleAddItem() {
       this.$router.push('/NewOption');
     },
-    handleDeleteProject(projectId) {
-      // 1. 先获取当前要删除的项目名称（用于成功提示文案）
-      const deleteProject = this.projects.find(p => p.id === projectId);
-      const projectName = deleteProject ? deleteProject.name : '未命名项目';
+handleDeleteProject(projectId) {
+    // 1. 暂存要删除的项目ID，获取项目名称
+    this.deleteProjectId = projectId;
+    const deleteProject = this.projects.find(p => p.id === projectId);
+    const projectName = deleteProject ? deleteProject.name : '未命名项目';
 
-      // 2. 确认删除
-      if (confirm(`确定要删除项目「${projectName}」吗？`)) {
-        try {
-          // 3. 执行删除逻辑
-          this.projects = this.projects.filter(project => project.id !== projectId);
-          localStorage.setItem('projects', JSON.stringify(this.projects));
+    // 2. 显示“删除确认弹窗”（type=confirm）
+    this.modalType = 'confirm';
+    this.modalMessage = `确定要删除项目「${projectName}」吗？删除后不可恢复！`;
+    this.modalVisible = true;
+  },
 
-          // 4. 删除成功：调用成功提示（传递 type: 'success'）
-          this.showModal(`项目「${projectName}」删除成功！`, 'success');
-        } catch (error) {
-          // 5. 删除失败：恢复数据并调用失败提示
-          this.loadProjects();
-          this.showModal('删除项目失败：' + error.message, 'fail');
-          console.error('删除项目失败：', error);
-        }
+  // 新增：弹窗确认按钮的回调（删除逻辑移到这里）
+  handleModalConfirm() {
+    // 只有“确认删除”类型才执行删除
+    if (this.modalType === 'confirm' && this.deleteProjectId !== null) {
+      try {
+        const deleteProject = this.projects.find(p => p.id === this.deleteProjectId);
+        const projectName = deleteProject ? deleteProject.name : '未命名项目';
+
+        // 执行删除
+        this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
+        localStorage.setItem('projects', JSON.stringify(this.projects));
+
+        // 显示删除成功弹窗
+        this.showModal(`项目「${projectName}」删除成功！`, 'success');
+      } catch (error) {
+        this.loadProjects();
+        this.showModal('删除项目失败：' + error.message, 'fail');
+        console.error('删除失败：', error);
+      } finally {
+        // 重置暂存的项目ID
+        this.deleteProjectId = null;
       }
-    },
-    // 新增：通用弹窗显示方法（支持成功/失败）
-    showModal(message, type) {
-      this.modalMessage = message;
-      this.modalType = type;
-      this.modalVisible = true;
+    }
+  },
 
-      // 3秒后自动关闭（保持原有自动关闭逻辑）
+  // 修改showModal方法：保留自动关闭（仅成功/失败类型）
+  showModal(message, type) {
+    this.modalMessage = message;
+    this.modalType = type;
+    this.modalVisible = true;
+
+    // 只有成功/失败弹窗自动关闭，确认弹窗需手动点击
+    if (type === 'success' || type === 'fail') {
       setTimeout(() => {
         this.modalVisible = false;
       }, 3000);
     }
   }
+}
 }
 </script>
 
@@ -290,9 +309,16 @@ export default {
 .card-footer {
   font-size: 0.8rem;
   color: #888;
-  text-align: right;
   position: relative;
-  padding-right: 30px; /* 为删除按钮留出空间 */
+  padding: 4px 0;
+  display: flex;
+  justify-content: center; /* 时间戳水平居中 */
+  align-items: center;
+}
+
+/* 2. 时间戳：确保自身居中 */
+.project-time {
+  text-align: center;
 }
 
 .no-project {
@@ -300,6 +326,22 @@ export default {
   font-size: 1rem;
   padding: 40px 20px;
   white-space: nowrap;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 基于自身中心点偏移，实现精准居中 */
+  display: inline-block;
+  border-radius: 6px;
+}
+
+.project-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px 0;
+  padding-bottom: 12px;
+  min-height: 120px; /* 与项目卡片高度一致，视觉统一 */
+  position: relative; /* 作为.no-project的定位参考父级 */
 }
 
 .add-item-btn {
@@ -327,31 +369,29 @@ export default {
   font-weight: bold;
 }
 
-/* 删除按钮样式 */
+/* 删除按钮样式：默认红底白字，hover可微调加深（可选） */
 .delete-btn {
   position: absolute;
   right: 0;
-  top: 0;
-  background-color: transparent;
-  border: none;
-  color: #ff4d4f;
-  cursor: pointer;
-  font-size: 1rem;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.delete-btn:hover {
+  top: 50%; /* 垂直居中 */
+  transform: translateY(-50%);
   background-color: #ff4d4f;
   color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  transition: background-color 0.2s;
 }
 
-.delete-icon {
-  font-weight: bold;
-}
+  .delete-btn:hover {
+    background-color: #d9363e; /* 深红色hover效果 */
+    color: white; /* 保持白色图标不变 */
+  }
+
+  .delete-icon {
+    font-weight: normal; /* 取消加粗，避免图标过粗 */
+    line-height: 1; /* 清除行高影响，确保垂直居中 */
+  }
 </style>

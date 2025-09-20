@@ -1,21 +1,32 @@
 <template>
   <div class="modal-overlay" v-if="visible">
     <div class="modal-container">
-      <!-- 弹窗头部：标题根据类型切换 -->
       <div class="modal-header">
-        <h3 class="modal-title">{{ type === 'success' ? '操作成功' : '操作失败' }}</h3>
+        <h3 class="modal-title">{{ getTitle() }}</h3>
       </div>
-      <!-- 弹窗内容：图标颜色+文本根据类型切换 -->
       <div class="modal-body">
-        <p class="modal-icon" :class="{ 'success-icon': type === 'success', 'fail-icon': type === 'fail' }">
-          {{ type === 'success' ? '✓' : '×' }}
+        <p class="modal-icon" :class="getIconClass()">
+          {{ getIcon() }}
         </p>
         <p class="modal-text">{{ message }}</p>
       </div>
-      <!-- 弹窗底部：确定按钮 -->
-      <div class="modal-footer">
-        <button class="confirm-btn" :class="{ 'success-btn': type === 'success', 'fail-btn': type === 'fail' }" @click="handleClose">
-          确定
+      <!-- 新增：根据类型显示“单按钮”或“双按钮” -->
+      <div class="modal-footer" :class="{ 'two-btn': type === 'confirm' }">
+        <!-- 取消按钮：仅确认类型显示 -->
+        <button
+          v-if="type === 'confirm'"
+          class="cancel-btn"
+          @click="handleCancel"
+        >
+          取消
+        </button>
+        <!-- 确认按钮：所有类型显示 -->
+        <button
+          class="confirm-btn"
+          :class="getBtnClass()"
+          @click="handleConfirm"
+        >
+          {{ type === 'confirm' ? '确认删除' : '确定' }}
         </button>
       </div>
     </div>
@@ -26,29 +37,58 @@
 export default {
   name: 'FailModal',
   props: {
-    // 控制显示/隐藏（必传）
-    visible: {
-      type: Boolean,
-      required: true,
-      default: false
-    },
-    // 提示消息（必传）
-    message: {
-      type: String,
-      required: true,
-      default: '操作异常'
-    },
-    // 弹窗类型：success（成功）/ fail（失败）（必传）
+    visible: { type: Boolean, required: true, default: false },
+    message: { type: String, required: true, default: '操作异常' },
     type: {
       type: String,
       required: true,
-      validator: val => ['success', 'fail'].includes(val) // 只允许两种类型
+      validator: val => ['success', 'fail', 'confirm'].includes(val) // 新增confirm类型
     }
   },
   methods: {
-    // 点击确定按钮：触发close事件，通知父组件关闭
-    handleClose() {
+    // 点击确认/确定按钮：触发confirm事件
+    handleConfirm() {
+      this.$emit('confirm');
+      this.$emit('close'); // 关闭弹窗
+    },
+    // 点击取消按钮：仅触发close事件
+    handleCancel() {
       this.$emit('close');
+    },
+    // 动态获取标题
+    getTitle() {
+      const titleMap = {
+        success: '操作成功',
+        fail: '操作失败',
+        confirm: '确认删除'
+      };
+      return titleMap[this.type];
+    },
+    // 动态获取图标类名
+    getIconClass() {
+      const iconClassMap = {
+        success: 'success-icon',
+        fail: 'fail-icon',
+        confirm: 'confirm-icon' // 新增确认类型图标类
+      };
+      return iconClassMap[this.type];
+    },
+    // 动态获取图标
+    getIcon() {
+      const iconMap = {
+        success: '✓',
+        fail: '×',
+      };
+      return iconMap[this.type];
+    },
+    // 动态获取按钮类名
+    getBtnClass() {
+      const btnClassMap = {
+        success: 'success-btn',
+        fail: 'fail-btn',
+        confirm: 'confirm-btn' // 新增确认按钮类
+      };
+      return btnClassMap[this.type];
     }
   }
 }
@@ -155,5 +195,37 @@ export default {
 
 .fail-btn:hover {
   background-color: #d9363e;
+}
+
+/* 确认图标（红色，区分成功/失败） */
+.confirm-icon {
+  color: #b61b1b;
+}
+/* 确认按钮 */
+.confirm-btn {
+  background-color: #b61b1b;
+}
+.confirm-btn:hover {
+  background-color: #b61b1b;
+}
+/* 取消按钮样式 */
+.cancel-btn {
+  padding: 10px 24px;
+  color: #333;
+  background-color: #f5f5f5;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 12px;
+  transition: background-color 0.3s;
+}
+.cancel-btn:hover {
+  background-color: #e8e8e8;
+}
+/* 双按钮布局 */
+.two-btn {
+  justify-content: center;
+  gap: 8px;
 }
 </style>

@@ -7,9 +7,8 @@
       <div class="modal-header">
         <h3 class="modal-title">操作结果</h3>
       </div>
-      <!-- 弹窗内容：提示文本 + 项目名称 -->
+      <!-- 弹窗内容：仅保留提示文本 -->
       <div class="modal-body">
-        <p class="success-icon">✓</p>
         <p class="success-text">项目「{{ projectName }}」创建成功！</p>
       </div>
       <!-- 弹窗底部：确定按钮 -->
@@ -88,16 +87,10 @@ export default {
   text-align: center;
 }
 
-/* 弹窗内容：图标 + 文本居中 */
+/* 弹窗内容：仅文本居中，调整内边距 */
 .modal-body {
-  padding: 24px 16px;
+  padding: 32px 16px; /* 增加上下内边距，弥补移除图标后的空间 */
   text-align: center;
-}
-
-.success-icon {
-  font-size: 2.5rem;
-  color: #42b983; /* 成功绿色 */
-  margin: 0 0 12px;
 }
 
 .success-text {
