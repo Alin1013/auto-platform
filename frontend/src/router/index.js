@@ -4,6 +4,8 @@ import HomePage from '@/components/HomePage.vue'
 import NewOption from '@/components/NewOption.vue'
 import SuccessModal from '@/components/SuccessModal.vue'
 import FailModal from '@/components/FailModal.vue'
+import UiInfo from '@/components/UiInfo.vue'
+import ApiInfo from '@/components/ApiInfo.vue'
 
 const router = createRouter({
   history: createWebHashHistory(), // 使用哈希路由
@@ -36,6 +38,22 @@ const router = createRouter({
           path:'/FailModal',
           name: 'FailModal',
           component: FailModal
+      },
+      {
+          path:'/UiInfo',
+          name: 'UiInfo',
+          component: UiInfo,
+          props: route => ({
+        currentProjectName: route.query.projectName
+      })
+      },
+      {
+          path:'/ApiInfo',
+          name: 'ApiInfo',
+          component: ApiInfo,
+          props: route => ({
+        currentProjectName: route.query.projectName
+      })
       }
   ]
 })

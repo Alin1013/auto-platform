@@ -121,12 +121,12 @@ export default {
 }
 .page-title {
   position: absolute;
-  top: 20px;
+  top: 50px;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
   z-index: 10;
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #333;
 }
 
