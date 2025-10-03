@@ -470,7 +470,7 @@
               <div v-for="(testCase, index) in testCases" :key="index" class="test-case-card">
                 <div class="test-case-header">
                   <h3 class="test-case-title">{{ testCase.name }}</h3>
-                  <button class="remove-btn" @click="removeTestCase(index)">×</button>
+                  <button class="remove-btn" @click="handleDeleteTestCase(index, testCase.name)">×</button>
                 </div>
                 <div class="test-case-body">
                   <p><strong>URL:</strong> {{ testCase.url }}</p>
@@ -548,12 +548,35 @@
         </section>
       </main>
     </div>
+
+    <!-- 成功提示弹窗 -->
+    <SuccessModal
+      v-if="showSuccessModal"
+      :project-name="successMessage"
+      :on-confirm="handleSuccessConfirm"
+    />
+
+    <!-- 失败/确认提示弹窗 -->
+    <FailModal
+      :visible="showFailModal"
+      :message="failMessage"
+      :type="failModalType"
+      @close="showFailModal = false"
+      @confirm="handleFailConfirm"
+    />
   </div>
 </template>
 
 <script>
+import SuccessModal from '@/components/SuccessModal.vue';
+import FailModal from '@/components/FailModal.vue';
+
 export default {
   name: 'ApiInfo',
+  components: {
+    SuccessModal,
+    FailModal
+  },
   props: {
     currentProjectName: {
       type: String,
@@ -635,7 +658,15 @@ export default {
         url: '',
         method: 'GET',
         description: ''
-      }
+      },
+      deleteIndex: -1, // 记录待删除的用例索引
+
+      // 弹窗状态
+      showSuccessModal: false,
+      successMessage: '',
+      showFailModal: false,
+      failMessage: '',
+      failModalType: 'fail' // 'fail' 或 'confirm'
     }
   },
   computed: {
@@ -652,7 +683,24 @@ export default {
       return '';
     }
   },
+  mounted() {
+    // 从本地存储加载测试用例
+    this.loadTestCases();
+  },
   methods: {
+    // 加载测试用例
+    loadTestCases() {
+      const key = `testCases_${this.currentProjectName}`;
+      const saved = localStorage.getItem(key);
+      this.testCases = saved ? JSON.parse(saved) : [];
+    },
+
+    // 保存测试用例到本地存储
+    saveTestCases() {
+      const key = `testCases_${this.currentProjectName}`;
+      localStorage.setItem(key, JSON.stringify(this.testCases));
+    },
+
     // 返回首页
     handleGoBack() {
       this.$router.push('/home');
@@ -835,9 +883,29 @@ export default {
 
     // 添加测试用例
     handleAddTestCase() {
+      const name = this.newTestCase.name.trim();
+      if (!name) {
+        this.showFailModal = true;
+        this.failMessage = '测试用例名称不能为空';
+        this.failModalType = 'fail';
+        return;
+      }
+
+      // 检查是否重名
+      const isDuplicate = this.testCases.some(item => item.name.trim() === name);
+      if (isDuplicate) {
+        this.showFailModal = true;
+        this.failMessage = '该测试用例名称已存在';
+        this.failModalType = 'fail';
+        return;
+      }
+
       // 深拷贝避免引用问题
       const caseToAdd = {...this.newTestCase};
       this.testCases.push(caseToAdd);
+
+      // 保存到本地存储
+      this.saveTestCases();
 
       // 重置表单并关闭弹窗
       this.newTestCase = {
@@ -849,14 +917,37 @@ export default {
       this.showAddTestCaseModal = false;
 
       // 显示成功提示
-      alert('测试用例添加成功！');
+      this.showSuccessModal = true;
+      this.successMessage = `测试用例「${name}」`;
     },
 
-    // 删除测试用例
-    removeTestCase(index) {
-      if (confirm('确定要删除这个测试用例吗？')) {
-        this.testCases.splice(index, 1);
+    // 处理删除确认
+    handleDeleteTestCase(index, name) {
+      this.deleteIndex = index;
+      this.showFailModal = true;
+      this.failMessage = `确定要删除测试用例「${name}」吗？`;
+      this.failModalType = 'confirm';
+    },
+
+    // 成功弹窗确认
+    handleSuccessConfirm() {
+      this.showSuccessModal = false;
+    },
+
+    // 失败/确认弹窗确认
+    handleFailConfirm() {
+      if (this.failModalType === 'confirm' && this.deleteIndex !== -1) {
+        // 执行删除操作
+        const deletedName = this.testCases[this.deleteIndex].name;
+        this.testCases.splice(this.deleteIndex, 1);
+        this.saveTestCases();
+
+        // 显示删除成功提示
+        this.showSuccessModal = true;
+        this.successMessage = `测试用例「${deletedName}」删除成功`;
+        this.deleteIndex = -1;
       }
+      this.showFailModal = false;
     }
   }
 }
