@@ -2,7 +2,7 @@
   <div class="api-info-container">
     <!-- 背景图片 -->
     <div class="bg-image">
-      <img src="@/assets/background.png" alt="接口测试详情背景" />
+      <img src="@/assets/background.png" alt="接口测试详情背景"/>
     </div>
 
     <!-- 页面标题 -->
@@ -14,11 +14,11 @@
         <button class="back-btn" @click="handleGoBack">◀返回</button>
         <ul class="function-list">
           <li
-            class="function-item"
-            v-for="item in functionItems"
-            :key="item.id"
-            @click="activeSection = item.id"
-            :class="{ 'active': activeSection === item.id }"
+              class="function-item"
+              v-for="item in functionItems"
+              :key="item.id"
+              @click="activeSection = item.id"
+              :class="{ 'active': activeSection === item.id }"
           >
             {{ item.name }}
           </li>
@@ -49,17 +49,17 @@
                 </div>
                 <div class="url-input-group">
                   <input
-                    type="text"
-                    v-model="host"
-                    class="host-input"
-                    placeholder="Host"
+                      type="text"
+                      v-model="host"
+                      class="host-input"
+                      placeholder="Host"
                   >
                   <span class="url-separator">/</span>
                   <input
-                    type="text"
-                    v-model="endpoint"
-                    class="endpoint-input"
-                    placeholder="接口路径"
+                      type="text"
+                      v-model="endpoint"
+                      class="endpoint-input"
+                      placeholder="接口路径"
                   >
                 </div>
                 <button class="send-btn" @click="sendRequest">
@@ -70,30 +70,30 @@
               <!-- 请求标签页 -->
               <div class="request-tabs">
                 <div
-                  class="tab-item"
-                  :class="{ 'active': activeTab === 'params' }"
-                  @click="activeTab = 'params'"
+                    class="tab-item"
+                    :class="{ 'active': activeTab === 'params' }"
+                    @click="activeTab = 'params'"
                 >
                   参数
                 </div>
                 <div
-                  class="tab-item"
-                  :class="{ 'active': activeTab === 'headers' }"
-                  @click="activeTab = 'headers'"
+                    class="tab-item"
+                    :class="{ 'active': activeTab === 'headers' }"
+                    @click="activeTab = 'headers'"
                 >
                   请求头
                 </div>
                 <div
-                  class="tab-item"
-                  :class="{ 'active': activeTab === 'body' }"
-                  @click="activeTab = 'body'"
+                    class="tab-item"
+                    :class="{ 'active': activeTab === 'body' }"
+                    @click="activeTab = 'body'"
                 >
                   请求体
                 </div>
                 <div
-                  class="tab-item"
-                  :class="{ 'active': activeTab === 'auth' }"
-                  @click="activeTab = 'auth'"
+                    class="tab-item"
+                    :class="{ 'active': activeTab === 'auth' }"
+                    @click="activeTab = 'auth'"
                 >
                   认证
                 </div>
@@ -112,27 +112,27 @@
                     </div>
                     <div v-for="(param, index) in params" :key="index" class="param-row">
                       <input
-                        type="text"
-                        v-model="param.key"
-                        class="param-input"
-                        placeholder="参数名"
+                          type="text"
+                          v-model="param.key"
+                          class="param-input"
+                          placeholder="参数名"
                       >
                       <input
-                        type="text"
-                        v-model="param.value"
-                        class="param-input"
-                        placeholder="值"
+                          type="text"
+                          v-model="param.value"
+                          class="param-input"
+                          placeholder="值"
                       >
                       <input
-                        type="text"
-                        v-model="param.description"
-                        class="param-input"
-                        placeholder="描述"
+                          type="text"
+                          v-model="param.description"
+                          class="param-input"
+                          placeholder="描述"
                       >
                       <button
-                        class="remove-btn"
-                        @click="removeParam(index)"
-                        :disabled="params.length <= 1"
+                          class="remove-btn"
+                          @click="removeParam(index)"
+                          :disabled="params.length <= 1"
                       >
                         ×
                       </button>
@@ -153,21 +153,21 @@
                     </div>
                     <div v-for="(header, index) in headers" :key="index" class="header-row">
                       <input
-                        type="text"
-                        v-model="header.key"
-                        class="header-input"
-                        placeholder="Key"
+                          type="text"
+                          v-model="header.key"
+                          class="header-input"
+                          placeholder="Key"
                       >
                       <input
-                        type="text"
-                        v-model="header.value"
-                        class="header-input"
-                        placeholder="Value"
+                          type="text"
+                          v-model="header.value"
+                          class="header-input"
+                          placeholder="Value"
                       >
                       <button
-                        class="remove-btn"
-                        @click="removeHeader(index)"
-                        :disabled="headers.length <= 1"
+                          class="remove-btn"
+                          @click="removeHeader(index)"
+                          :disabled="headers.length <= 1"
                       >
                         ×
                       </button>
@@ -182,30 +182,30 @@
                 <div v-if="activeTab === 'body'" class="body-content">
                   <div class="body-type-selector">
                     <div
-                      class="body-type-item"
-                      :class="{ 'active': bodyType === 'form-data' }"
-                      @click="bodyType = 'form-data'"
+                        class="body-type-item"
+                        :class="{ 'active': bodyType === 'form-data' }"
+                        @click="bodyType = 'form-data'"
                     >
                       form-data
                     </div>
                     <div
-                      class="body-type-item"
-                      :class="{ 'active': bodyType === 'x-www-form-urlencoded' }"
-                      @click="bodyType = 'x-www-form-urlencoded'"
+                        class="body-type-item"
+                        :class="{ 'active': bodyType === 'x-www-form-urlencoded' }"
+                        @click="bodyType = 'x-www-form-urlencoded'"
                     >
                       x-www-form-urlencoded
                     </div>
                     <div
-                      class="body-type-item"
-                      :class="{ 'active': bodyType === 'raw' }"
-                      @click="bodyType = 'raw'"
+                        class="body-type-item"
+                        :class="{ 'active': bodyType === 'raw' }"
+                        @click="bodyType = 'raw'"
                     >
                       raw
                     </div>
                     <div
-                      class="body-type-item"
-                      :class="{ 'active': bodyType === 'binary' }"
-                      @click="bodyType = 'binary'"
+                        class="body-type-item"
+                        :class="{ 'active': bodyType === 'binary' }"
+                        @click="bodyType = 'binary'"
                     >
                       binary
                     </div>
@@ -222,9 +222,9 @@
                       <option value="css">CSS</option>
                     </select>
                     <textarea
-                      v-model="rawBodyContent"
-                      class="raw-body-input"
-                      placeholder="输入请求体内容..."
+                        v-model="rawBodyContent"
+                        class="raw-body-input"
+                        placeholder="输入请求体内容..."
                     ></textarea>
                   </div>
 
@@ -239,35 +239,35 @@
                       </div>
                       <div v-for="(field, index) in formDataFields" :key="index" class="form-data-row">
                         <input
-                          type="text"
-                          v-model="field.key"
-                          class="form-data-input"
-                          placeholder="Key"
+                            type="text"
+                            v-model="field.key"
+                            class="form-data-input"
+                            placeholder="Key"
                         >
                         <input
-                          type="text"
-                          v-model="field.value"
-                          class="form-data-input"
-                          placeholder="Value"
-                          v-if="field.type === 'text'"
+                            type="text"
+                            v-model="field.value"
+                            class="form-data-input"
+                            placeholder="Value"
+                            v-if="field.type === 'text'"
                         >
                         <input
-                          type="file"
-                          class="form-data-file"
-                          v-if="field.type === 'file'"
+                            type="file"
+                            class="form-data-file"
+                            v-if="field.type === 'file'"
                         >
                         <select
-                          v-model="field.type"
-                          class="form-data-type"
-                          @change="updateFormFieldType(index, field.type)"
+                            v-model="field.type"
+                            class="form-data-type"
+                            @change="updateFormFieldType(index, field.type)"
                         >
                           <option value="text">text</option>
                           <option value="file">file</option>
                         </select>
                         <button
-                          class="remove-btn"
-                          @click="removeFormDataField(index)"
-                          :disabled="formDataFields.length <= 1"
+                            class="remove-btn"
+                            @click="removeFormDataField(index)"
+                            :disabled="formDataFields.length <= 1"
                         >
                           ×
                         </button>
@@ -335,30 +335,30 @@
                 </div>
                 <div class="response-tabs">
                   <div
-                    class="response-tab-item"
-                    :class="{ 'active': activeResponseTab === 'body' }"
-                    @click="activeResponseTab = 'body'"
+                      class="response-tab-item"
+                      :class="{ 'active': activeResponseTab === 'body' }"
+                      @click="activeResponseTab = 'body'"
                   >
                     响应体
                   </div>
                   <div
-                    class="response-tab-item"
-                    :class="{ 'active': activeResponseTab === 'headers' }"
-                    @click="activeResponseTab = 'headers'"
+                      class="response-tab-item"
+                      :class="{ 'active': activeResponseTab === 'headers' }"
+                      @click="activeResponseTab = 'headers'"
                   >
                     响应头
                   </div>
                   <div
-                    class="response-tab-item"
-                    :class="{ 'active': activeResponseTab === 'cookies' }"
-                    @click="activeResponseTab = 'cookies'"
+                      class="response-tab-item"
+                      :class="{ 'active': activeResponseTab === 'cookies' }"
+                      @click="activeResponseTab = 'cookies'"
                   >
                     Cookies
                   </div>
                   <div
-                    class="response-tab-item"
-                    :class="{ 'active': activeResponseTab === 'timeline' }"
-                    @click="activeResponseTab = 'timeline'"
+                      class="response-tab-item"
+                      :class="{ 'active': activeResponseTab === 'timeline' }"
+                      @click="activeResponseTab = 'timeline'"
                   >
                     时间线
                   </div>
@@ -401,7 +401,8 @@
                 </div>
 
                 <div v-if="activeResponseTab === 'cookies'" class="response-cookies">
-                  <div v-if="responseData && responseData.cookies && responseData.cookies.length > 0" class="cookies-list">
+                  <div v-if="responseData && responseData.cookies && responseData.cookies.length > 0"
+                       class="cookies-list">
                     <div v-for="(cookie, index) in responseData.cookies" :key="index" class="cookie-item">
                       <span class="cookie-name">{{ cookie.name }}:</span>
                       <span class="cookie-value">{{ cookie.value }}</span>
@@ -415,32 +416,37 @@
                 <div v-if="activeResponseTab === 'timeline'" class="response-timeline">
                   <div v-if="responseData" class="timeline-chart">
                     <div class="timeline-bar">
-                      <div class="timeline-segment dns" :style="{ width: timelineData.dns + '%' }" title="DNS: {{ timelineData.dns }}ms"></div>
-                      <div class="timeline-segment connect" :style="{ width: timelineData.connect + '%' }" title="连接: {{ timelineData.connect }}ms"></div>
-                      <div class="timeline-segment send" :style="{ width: timelineData.send + '%' }" title="发送: {{ timelineData.send }}ms"></div>
-                      <div class="timeline-segment wait" :style="{ width: timelineData.wait + '%' }" title="等待: {{ timelineData.wait }}ms"></div>
-                      <div class="timeline-segment receive" :style="{ width: timelineData.receive + '%' }" title="接收: {{ timelineData.receive }}ms"></div>
+                      <div class="timeline-segment dns" :style="{ width: timelineData.dns + '%' }"
+                           title="DNS: {{ timelineData.dnsMs }}ms"></div>
+                      <div class="timeline-segment connect" :style="{ width: timelineData.connect + '%' }"
+                           title="连接: {{ timelineData.connectMs }}ms"></div>
+                      <div class="timeline-segment send" :style="{ width: timelineData.send + '%' }"
+                           title="发送: {{ timelineData.sendMs }}ms"></div>
+                      <div class="timeline-segment wait" :style="{ width: timelineData.wait + '%' }"
+                           title="等待: {{ timelineData.waitMs }}ms"></div>
+                      <div class="timeline-segment receive" :style="{ width: timelineData.receive + '%' }"
+                           title="接收: {{ timelineData.receiveMs }}ms"></div>
                     </div>
                     <div class="timeline-stats">
                       <div class="timeline-stat">
                         <span class="stat-label">DNS:</span>
-                        <span class="stat-value">{{ timelineData.dns }}ms</span>
+                        <span class="stat-value">{{ timelineData.dnsMs }}ms</span>
                       </div>
                       <div class="timeline-stat">
                         <span class="stat-label">连接:</span>
-                        <span class="stat-value">{{ timelineData.connect }}ms</span>
+                        <span class="stat-value">{{ timelineData.connectMs }}ms</span>
                       </div>
                       <div class="timeline-stat">
                         <span class="stat-label">发送:</span>
-                        <span class="stat-value">{{ timelineData.send }}ms</span>
+                        <span class="stat-value">{{ timelineData.sendMs }}ms</span>
                       </div>
                       <div class="timeline-stat">
                         <span class="stat-label">等待:</span>
-                        <span class="stat-value">{{ timelineData.wait }}ms</span>
+                        <span class="stat-value">{{ timelineData.waitMs }}ms</span>
                       </div>
                       <div class="timeline-stat">
                         <span class="stat-label">接收:</span>
-                        <span class="stat-value">{{ timelineData.receive }}ms</span>
+                        <span class="stat-value">{{ timelineData.receiveMs }}ms</span>
                       </div>
                     </div>
                   </div>
@@ -452,8 +458,91 @@
             </div>
           </div>
 
+          <!-- 测试用例内容 -->
+          <div v-if="activeSection === 'test-case'" class="test-case-content">
+            <div class="test-case-actions">
+              <button class="add-btn" @click="showAddTestCaseModal = true">
+                + 添加测试用例
+              </button>
+            </div>
+
+            <div v-if="testCases.length > 0" class="test-case-list">
+              <div v-for="(testCase, index) in testCases" :key="index" class="test-case-card">
+                <div class="test-case-header">
+                  <h3 class="test-case-title">{{ testCase.name }}</h3>
+                  <button class="remove-btn" @click="removeTestCase(index)">×</button>
+                </div>
+                <div class="test-case-body">
+                  <p><strong>URL:</strong> {{ testCase.url }}</p>
+                  <p><strong>方法:</strong> {{ testCase.method }}</p>
+                  <p v-if="testCase.description"><strong>描述:</strong> {{ testCase.description }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="empty-test-case">
+              <p>暂无测试用例，请点击"添加测试用例"按钮创建</p>
+            </div>
+          </div>
+
+          <!-- 添加测试用例弹窗 -->
+          <div v-if="showAddTestCaseModal" class="modal-overlay">
+            <div class="modal-container">
+              <div class="modal-header">
+                <h3>添加测试用例</h3>
+                <button class="modal-close" @click="showAddTestCaseModal = false">×</button>
+              </div>
+              <div class="modal-body">
+                <form @submit.prevent="handleAddTestCase">
+                  <div class="form-item">
+                    <label class="form-label">用例名称</label>
+                    <input
+                        type="text"
+                        v-model="newTestCase.name"
+                        class="form-control"
+                        placeholder="请输入测试用例名称"
+                        required
+                    >
+                  </div>
+                  <div class="form-item">
+                    <label class="form-label">请求URL</label>
+                    <input
+                        type="text"
+                        v-model="newTestCase.url"
+                        class="form-control"
+                        placeholder="请输入请求URL"
+                        required
+                    >
+                  </div>
+                  <div class="form-item">
+                    <label class="form-label">请求方法</label>
+                    <select v-model="newTestCase.method" class="form-control" required>
+                      <option value="GET">GET</option>
+                      <option value="POST">POST</option>
+                      <option value="PUT">PUT</option>
+                      <option value="DELETE">DELETE</option>
+                    </select>
+                  </div>
+                  <div class="form-item">
+                    <label class="form-label">用例描述</label>
+                    <textarea
+                        v-model="newTestCase.description"
+                        class="form-control"
+                        placeholder="请输入测试用例描述"
+                        rows="3"
+                    ></textarea>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="cancel-btn" @click="showAddTestCaseModal = false">取消</button>
+                    <button type="submit" class="confirm-btn">确定</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
           <!-- 其他功能区占位符 -->
-          <div v-else class="section-placeholder">
+          <div v-else-if="['test-report', 'environment', 'log'].includes(activeSection)" class="section-placeholder">
             <p>当前「{{ activeFunctionItem.name }}」功能区暂未开放，敬请期待...</p>
           </div>
         </section>
@@ -475,11 +564,11 @@ export default {
   data() {
     return {
       functionItems: [
-        { id: 'interface-list', name: '接口列表' },
-        { id: 'test-case', name: '测试用例' },
-        { id: 'test-report', name: '测试报告' },
-        { id: 'environment', name: '环境配置' },
-        { id: 'log', name: '执行日志' }
+        {id: 'interface-list', name: '接口列表'},
+        {id: 'test-case', name: '测试用例'},
+        {id: 'test-report', name: '测试报告'},
+        {id: 'environment', name: '环境配置'},
+        {id: 'log', name: '执行日志'}
       ],
       activeSection: 'interface-list',
 
@@ -493,22 +582,21 @@ export default {
 
       // 请求参数
       params: [
-        { key: '', value: '', description: '' }
+        {key: '', value: '', description: ''}
       ],
 
       // 请求头
       headers: [
-        { key: 'Content-Type', value: 'application/json' },
-        { key: '', value: '' }
+        {key: 'Content-Type', value: 'application/json'},
+        {key: '', value: ''}
       ],
 
       // 请求体
-      activeBodyTab: 'form-data',
       bodyType: 'form-data',
       rawBodyType: 'json',
       rawBodyContent: '{\n  "key": "value"\n}',
       formDataFields: [
-        { key: '', value: '', type: 'text' }
+        {key: '', value: '', type: 'text'}
       ],
 
       // 认证
@@ -531,13 +619,28 @@ export default {
         connect: 0,
         send: 0,
         wait: 0,
-        receive: 0
+        receive: 0,
+        dnsMs: 0,
+        connectMs: 0,
+        sendMs: 0,
+        waitMs: 0,
+        receiveMs: 0
+      },
+
+      // 测试用例相关数据
+      testCases: [],
+      showAddTestCaseModal: false,
+      newTestCase: {
+        name: '',
+        url: '',
+        method: 'GET',
+        description: ''
       }
     }
   },
   computed: {
     activeFunctionItem() {
-      return this.functionItems.find(item => item.id === this.activeSection) || { name: '未知功能' };
+      return this.functionItems.find(item => item.id === this.activeSection) || {name: '未知功能'};
     },
     statusCodeClass() {
       if (!this.responseData) return '';
@@ -557,7 +660,7 @@ export default {
 
     // 参数操作
     addParam() {
-      this.params.push({ key: '', value: '', description: '' });
+      this.params.push({key: '', value: '', description: ''});
     },
     removeParam(index) {
       this.params.splice(index, 1);
@@ -565,7 +668,7 @@ export default {
 
     // 请求头操作
     addHeader() {
-      this.headers.push({ key: '', value: '' });
+      this.headers.push({key: '', value: ''});
     },
     removeHeader(index) {
       this.headers.splice(index, 1);
@@ -573,13 +676,13 @@ export default {
 
     // 表单数据操作
     addFormDataField() {
-      this.formDataFields.push({ key: '', value: '', type: 'text' });
+      this.formDataFields.push({key: '', value: '', type: 'text'});
     },
     removeFormDataField(index) {
       this.formDataFields.splice(index, 1);
     },
     updateFormFieldType() {
-
+      // 可以在这里添加字段类型变更的处理逻辑
     },
 
     // 响应操作
@@ -638,9 +741,9 @@ export default {
 
       // 添加查询参数
       const queryParams = this.params
-        .filter(p => p.key)
-        .map(p => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
-        .join('&');
+          .filter(p => p.key)
+          .map(p => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+          .join('&');
 
       if (queryParams) {
         url += (url.includes('?') ? '&' : '?') + queryParams;
@@ -671,8 +774,8 @@ export default {
               'Cache-Control': 'no-cache'
             },
             cookies: [
-              { name: 'sessionId', value: 'abc123' },
-              { name: 'token', value: 'def456' }
+              {name: 'sessionId', value: 'abc123'},
+              {name: 'token', value: 'def456'}
             ],
             data: {
               success: true,
@@ -728,6 +831,32 @@ export default {
         waitMs: wait,
         receiveMs: receive
       };
+    },
+
+    // 添加测试用例
+    handleAddTestCase() {
+      // 深拷贝避免引用问题
+      const caseToAdd = {...this.newTestCase};
+      this.testCases.push(caseToAdd);
+
+      // 重置表单并关闭弹窗
+      this.newTestCase = {
+        name: '',
+        url: '',
+        method: 'GET',
+        description: ''
+      };
+      this.showAddTestCaseModal = false;
+
+      // 显示成功提示
+      alert('测试用例添加成功！');
+    },
+
+    // 删除测试用例
+    removeTestCase(index) {
+      if (confirm('确定要删除这个测试用例吗？')) {
+        this.testCases.splice(index, 1);
+      }
     }
   }
 }
@@ -754,6 +883,7 @@ export default {
   opacity: 0.7;
   z-index: -1;
 }
+
 .bg-image img {
   width: 100%;
   height: 100%;
@@ -807,6 +937,7 @@ export default {
   transition: all 0.3s;
   text-align: left;
 }
+
 .back-btn:hover {
   background-color: #f5f5f5;
   color: #2196F3;
@@ -818,6 +949,7 @@ export default {
   padding: 0;
   flex: 1;
 }
+
 .function-item {
   padding: 12px 16px;
   color: #555;
@@ -827,11 +959,13 @@ export default {
   border-radius: 4px;
   margin-bottom: 4px;
 }
+
 .function-item.active {
   background-color: #2196F3;
   color: white;
   font-weight: 500;
 }
+
 .function-item:not(.active):hover {
   background-color: #f5f5f5;
   color: #2196F3;
@@ -1007,6 +1141,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .params-table, .headers-table {
@@ -1549,6 +1685,178 @@ export default {
   font-size: 0.9rem;
   font-weight: 500;
   color: #333;
+}
+
+/* 测试用例样式 */
+.test-case-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: 100%;
+}
+
+.test-case-actions {
+  align-self: flex-start;
+  margin-bottom: 10px;
+}
+
+.test-case-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.test-case-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  position: relative;
+  transition: box-shadow 0.3s;
+}
+
+.test-case-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.test-case-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.test-case-title {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.test-case-body {
+  color: #666;
+  line-height: 1.6;
+}
+
+.empty-test-case {
+  color: #888;
+  text-align: center;
+  padding: 40px 0;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+}
+
+.modal-close {
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #999;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.form-item {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2196F3;
+}
+
+.modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.cancel-btn {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.confirm-btn {
+  padding: 6px 12px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.confirm-btn:hover {
+  background-color: #0c7cd5;
 }
 
 /* 其他功能区占位符 */
