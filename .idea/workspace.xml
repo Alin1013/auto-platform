@@ -6,11 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="5669c669-0418-4f91-b69a-3fe4c913ed98" name="更改" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/HomePage.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/HomePage.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/NewOption.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/NewOption.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/router/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/AboutPage.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/views/HomePage.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/ApiInfo.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ApiInfo.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -143,7 +139,9 @@
       <workItem from="1758102125590" duration="1252000" />
       <workItem from="1758161719773" duration="16654000" />
       <workItem from="1758246316880" duration="4192000" />
-      <workItem from="1758338240062" duration="11724000" />
+      <workItem from="1758338240062" duration="11990000" />
+      <workItem from="1758353371385" duration="113000" />
+      <workItem from="1759467084675" duration="731000" />
     </task>
     <task id="LOCAL-00001" summary="跨域">
       <option name="closed" value="true" />
