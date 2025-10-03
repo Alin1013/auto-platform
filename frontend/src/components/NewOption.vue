@@ -11,7 +11,7 @@
     <!-- 中间表单容器 -->
     <div class="center-box">
       <div class="box-content">
-        <!-- 1. 新增：标题容器（包裹返回按钮 + 项目基础配置标题） -->
+        <!-- 标题容器（包裹返回按钮 + 项目基础配置标题） -->
         <div class="title-wrapper">
           <button class="back-btn" @click="handleGoBack">◀返回</button>
           <h3>项目基础配置</h3>
@@ -70,24 +70,30 @@ export default {
     handleGoBack() {
       this.$router.push('/home');
     },
-    handleSubmit() {
+    async handleSubmit() {
       const projectNameTrim = this.projectName.trim();
       if (!projectNameTrim || !this.selectedTestType) {
         alert('请完善项目名称和测试类型！');
         return;
       }
-      const newProject = {
-        id: Date.now(),
+      // 修复：将变量名从 newProject 改为 projectData（与接口调用处一致）
+      const projectData = {
         name: projectNameTrim,
-        testType: this.selectedTestType,
-        testTypeLabel: this.getTestTypeLabel(),
-        createTime: new Date().toLocaleString()
+        test_type: this.selectedTestType,  // 匹配后端字段
+        is_active: true  // 默认激活
       };
-      const existingProjects = JSON.parse(localStorage.getItem('projects') || '[]');
-      existingProjects.push(newProject);
-      localStorage.setItem('projects', JSON.stringify(existingProjects));
-      this.showModal = true;
+      try {
+        // 修复：使用定义好的 projectData 变量
+        const response = await this.$axios.post('http://localhost:8080/api/projects/', projectData);
+        if (response.status === 201) {  // 创建成功
+          this.showModal = true;
+        }
+      } catch (error) {
+        console.error('创建项目失败：', error);
+        alert('创建项目失败，请重试！');
+      }
     },
+    // 修复：将 handleModalConfirm 和 getTestTypeLabel 放入 methods 对象内
     handleModalConfirm() {
       this.$router.push('/home');
     },
@@ -150,25 +156,23 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center; /* 让标题容器整体居中 */
+  align-items: center;
   justify-content: center;
-  gap: 28px; /* 标题容器与表单的间距 */
+  gap: 28px;
 }
 
-/* 3标题容器：控制返回按钮在左上角，标题居中 */
 .title-wrapper {
-  width: 100%; /* 占满box-content宽度，确保标题能居中 */
+  width: 100%;
   display: flex;
-  align-items: center; /* 按钮与标题垂直对齐 */
-  position: relative; /* 作为返回按钮的定位参考 */
+  align-items: center;
+  position: relative;
 }
 
-/* 返回按钮：固定在标题容器左上角 */
 .back-btn {
   position: absolute;
-  left: 0; /* 容器最左侧 */
+  left: 0;
   top: 50%;
-  transform: translateY(-50%); /* 垂直居中 */
+  transform: translateY(-50%);
   background: transparent;
   border: none;
   color: #333;
@@ -182,13 +186,12 @@ export default {
   background-color: rgba(245, 245, 245, 0.8);
 }
 
-/* 5项目基础配置标题：在标题容器内居中 */
 .title-wrapper h3 {
   margin: 0;
   color: #555;
   font-size: 1.5rem;
-  width: 100%; /* 占满容器宽度 */
-  text-align: center; /* 文字居中 */
+  width: 100%;
+  text-align: center;
 }
 
 .config-form {
@@ -239,5 +242,4 @@ export default {
 .submit-btn:hover {
   background-color: #359e75;
 }
-
 </style>
