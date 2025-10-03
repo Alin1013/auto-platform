@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5669c669-0418-4f91-b69a-3fe4c913ed98" name="更改" comment="" />
+    <list default="true" id="5669c669-0418-4f91-b69a-3fe4c913ed98" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/components/ApiInfo.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ApiInfo.vue" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -55,7 +58,7 @@
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "正在合并 master",
+    "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "D:/Auto_platform/frontend/src/assets",
     "node.js.detected.package.eslint": "true",
@@ -139,6 +142,7 @@
       <workItem from="1758338240062" duration="11990000" />
       <workItem from="1758353371385" duration="113000" />
       <workItem from="1759467084675" duration="1091000" />
+      <workItem from="1759468499378" duration="412000" />
     </task>
     <task id="LOCAL-00001" summary="跨域">
       <option name="closed" value="true" />

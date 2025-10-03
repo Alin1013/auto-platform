@@ -8,7 +8,7 @@
     <!-- 页面标题 -->
     <h1 class="page-title">{{ currentProjectName }} - 接口测试详情</h1>
 
-    <!-- 主内容区：左侧功能栏 + 右侧内容区（Flex横向布局，确保高度一致） -->
+    <!-- 主内容区：左侧功能栏 + 右侧内容区 -->
     <div class="main-content">
       <aside class="function-sidebar">
         <button class="back-btn" @click="handleGoBack">◀返回</button>
@@ -25,90 +25,429 @@
         </ul>
       </aside>
 
-      <!-- 右侧内容区：与左侧高度强制一致，内容溢出滚动 -->
+      <!-- 右侧内容区 -->
       <main class="content-area">
         <section class="content-section">
           <h2 class="section-title">{{ activeFunctionItem.name }}</h2>
 
-          <!-- 接口列表内容 -->
+          <!-- 接口列表内容（Postman风格） -->
           <div v-if="activeSection === 'interface-list'" class="interface-list-content">
-            <!-- Host输入框 -->
-            <div class="form-group">
-              <label for="host" class="form-label">Host:</label>
-              <input
-                type="text"
-                id="host"
-                v-model="host"
-                class="form-input"
-                placeholder="例如: https://api.example.com"
-              >
-            </div>
+            <!-- 接口信息卡片 -->
+            <div class="interface-card">
+              <!-- 请求URL和方法 -->
+              <div class="request-header">
+                <div class="method-selector">
+                  <select v-model="selectedMethod" class="method-dropdown">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="HEAD">HEAD</option>
+                    <option value="OPTIONS">OPTIONS</option>
+                  </select>
+                </div>
+                <div class="url-input-group">
+                  <input
+                    type="text"
+                    v-model="host"
+                    class="host-input"
+                    placeholder="Host"
+                  >
+                  <span class="url-separator">/</span>
+                  <input
+                    type="text"
+                    v-model="endpoint"
+                    class="endpoint-input"
+                    placeholder="接口路径"
+                  >
+                </div>
+                <button class="send-btn" @click="sendRequest">
+                  <i class="send-icon">▶</i> 发送
+                </button>
+              </div>
 
-            <!-- 接口路径输入框 -->
-            <div class="form-group">
-              <label for="endpoint" class="form-label">接口路径:</label>
-              <input
-                type="text"
-                id="endpoint"
-                v-model="endpoint"
-                class="form-input"
-                placeholder="例如: /users/list"
-              >
-            </div>
+              <!-- 请求标签页 -->
+              <div class="request-tabs">
+                <div
+                  class="tab-item"
+                  :class="{ 'active': activeTab === 'params' }"
+                  @click="activeTab = 'params'"
+                >
+                  参数
+                </div>
+                <div
+                  class="tab-item"
+                  :class="{ 'active': activeTab === 'headers' }"
+                  @click="activeTab = 'headers'"
+                >
+                  请求头
+                </div>
+                <div
+                  class="tab-item"
+                  :class="{ 'active': activeTab === 'body' }"
+                  @click="activeTab = 'body'"
+                >
+                  请求体
+                </div>
+                <div
+                  class="tab-item"
+                  :class="{ 'active': activeTab === 'auth' }"
+                  @click="activeTab = 'auth'"
+                >
+                  认证
+                </div>
+              </div>
 
-            <!-- 请求方式选择 -->
-            <div class="form-group">
-              <label class="form-label">请求方式:</label>
-              <div class="radio-group">
-                <label class="radio-item">
-                  <input
-                    type="radio"
-                    name="method"
-                    value="GET"
-                    v-model="selectedMethod"
-                  >
-                  GET
-                </label>
-                <label class="radio-item">
-                  <input
-                    type="radio"
-                    name="method"
-                    value="POST"
-                    v-model="selectedMethod"
-                  >
-                  POST
-                </label>
-                <label class="radio-item">
-                  <input
-                    type="radio"
-                    name="method"
-                    value="PUT"
-                    v-model="selectedMethod"
-                  >
-                  PUT
-                </label>
-                <label class="radio-item">
-                  <input
-                    type="radio"
-                    name="method"
-                    value="DELETE"
-                    v-model="selectedMethod"
-                  >
-                  DELETE
-                </label>
+              <!-- 请求参数内容 -->
+              <div class="tab-content">
+                <!-- 参数表单 -->
+                <div v-if="activeTab === 'params'" class="params-content">
+                  <div class="params-table">
+                    <div class="params-header">
+                      <div class="param-column">参数名</div>
+                      <div class="param-column">值</div>
+                      <div class="param-column">描述</div>
+                      <div class="param-column">操作</div>
+                    </div>
+                    <div v-for="(param, index) in params" :key="index" class="param-row">
+                      <input
+                        type="text"
+                        v-model="param.key"
+                        class="param-input"
+                        placeholder="参数名"
+                      >
+                      <input
+                        type="text"
+                        v-model="param.value"
+                        class="param-input"
+                        placeholder="值"
+                      >
+                      <input
+                        type="text"
+                        v-model="param.description"
+                        class="param-input"
+                        placeholder="描述"
+                      >
+                      <button
+                        class="remove-btn"
+                        @click="removeParam(index)"
+                        :disabled="params.length <= 1"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  <button class="add-btn" @click="addParam">
+                    + 添加参数
+                  </button>
+                </div>
+
+                <!-- 请求头内容 -->
+                <div v-if="activeTab === 'headers'" class="headers-content">
+                  <div class="headers-table">
+                    <div class="header-header">
+                      <div class="header-column">Key</div>
+                      <div class="header-column">Value</div>
+                      <div class="header-column">操作</div>
+                    </div>
+                    <div v-for="(header, index) in headers" :key="index" class="header-row">
+                      <input
+                        type="text"
+                        v-model="header.key"
+                        class="header-input"
+                        placeholder="Key"
+                      >
+                      <input
+                        type="text"
+                        v-model="header.value"
+                        class="header-input"
+                        placeholder="Value"
+                      >
+                      <button
+                        class="remove-btn"
+                        @click="removeHeader(index)"
+                        :disabled="headers.length <= 1"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                  <button class="add-btn" @click="addHeader">
+                    + 添加请求头
+                  </button>
+                </div>
+
+                <!-- 请求体内容 -->
+                <div v-if="activeTab === 'body'" class="body-content">
+                  <div class="body-type-selector">
+                    <div
+                      class="body-type-item"
+                      :class="{ 'active': bodyType === 'form-data' }"
+                      @click="bodyType = 'form-data'"
+                    >
+                      form-data
+                    </div>
+                    <div
+                      class="body-type-item"
+                      :class="{ 'active': bodyType === 'x-www-form-urlencoded' }"
+                      @click="bodyType = 'x-www-form-urlencoded'"
+                    >
+                      x-www-form-urlencoded
+                    </div>
+                    <div
+                      class="body-type-item"
+                      :class="{ 'active': bodyType === 'raw' }"
+                      @click="bodyType = 'raw'"
+                    >
+                      raw
+                    </div>
+                    <div
+                      class="body-type-item"
+                      :class="{ 'active': bodyType === 'binary' }"
+                      @click="bodyType = 'binary'"
+                    >
+                      binary
+                    </div>
+                  </div>
+
+                  <!-- raw类型的内容 -->
+                  <div v-if="bodyType === 'raw'" class="raw-body-content">
+                    <select v-model="rawBodyType" class="raw-type-selector">
+                      <option value="json">JSON</option>
+                      <option value="xml">XML</option>
+                      <option value="text">Text</option>
+                      <option value="javascript">JavaScript</option>
+                      <option value="html">HTML</option>
+                      <option value="css">CSS</option>
+                    </select>
+                    <textarea
+                      v-model="rawBodyContent"
+                      class="raw-body-input"
+                      placeholder="输入请求体内容..."
+                    ></textarea>
+                  </div>
+
+                  <!-- form-data类型的内容 -->
+                  <div v-if="bodyType === 'form-data'" class="form-data-content">
+                    <div class="form-data-table">
+                      <div class="form-data-header">
+                        <div class="form-data-column">Key</div>
+                        <div class="form-data-column">Value</div>
+                        <div class="form-data-column">类型</div>
+                        <div class="form-data-column">操作</div>
+                      </div>
+                      <div v-for="(field, index) in formDataFields" :key="index" class="form-data-row">
+                        <input
+                          type="text"
+                          v-model="field.key"
+                          class="form-data-input"
+                          placeholder="Key"
+                        >
+                        <input
+                          type="text"
+                          v-model="field.value"
+                          class="form-data-input"
+                          placeholder="Value"
+                          v-if="field.type === 'text'"
+                        >
+                        <input
+                          type="file"
+                          class="form-data-file"
+                          v-if="field.type === 'file'"
+                        >
+                        <select
+                          v-model="field.type"
+                          class="form-data-type"
+                          @change="updateFormFieldType(index, field.type)"
+                        >
+                          <option value="text">text</option>
+                          <option value="file">file</option>
+                        </select>
+                        <button
+                          class="remove-btn"
+                          @click="removeFormDataField(index)"
+                          :disabled="formDataFields.length <= 1"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                    <button class="add-btn" @click="addFormDataField">
+                      + 添加字段
+                    </button>
+                  </div>
+
+                  <!-- 其他类型的占位符 -->
+                  <div v-if="['x-www-form-urlencoded', 'binary'].includes(bodyType)" class="body-placeholder">
+                    <p>{{ bodyType }} 类型的请求体功能即将支持</p>
+                  </div>
+                </div>
+
+                <!-- 认证内容 -->
+                <div v-if="activeTab === 'auth'" class="auth-content">
+                  <div class="auth-type-selector">
+                    <select v-model="authType" class="auth-type-dropdown">
+                      <option value="none">无</option>
+                      <option value="basic">Basic Auth</option>
+                      <option value="bearer">Bearer Token</option>
+                      <option value="digest">Digest Auth</option>
+                      <option value="oauth1">OAuth 1.0</option>
+                      <option value="oauth2">OAuth 2.0</option>
+                    </select>
+                  </div>
+
+                  <!-- Basic Auth -->
+                  <div v-if="authType === 'basic'" class="auth-fields">
+                    <div class="auth-field">
+                      <label>用户名</label>
+                      <input type="text" v-model="authData.username" class="auth-input">
+                    </div>
+                    <div class="auth-field">
+                      <label>密码</label>
+                      <input type="password" v-model="authData.password" class="auth-input">
+                    </div>
+                  </div>
+
+                  <!-- Bearer Token -->
+                  <div v-if="authType === 'bearer'" class="auth-fields">
+                    <div class="auth-field">
+                      <label>Token</label>
+                      <input type="text" v-model="authData.token" class="auth-input">
+                    </div>
+                  </div>
+
+                  <!-- 其他认证类型占位符 -->
+                  <div v-if="['digest', 'oauth1', 'oauth2'].includes(authType)" class="auth-placeholder">
+                    <p>{{ authType }} 认证类型即将支持</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- 发送请求按钮 -->
-            <button class="send-btn" @click="sendRequest">发送请求</button>
-
-            <!-- 返回数据展示区域 -->
+            <!-- 响应区域 -->
             <div class="response-section">
-              <h3 class="response-title">返回数据:</h3>
-              <div class="response-data">
-                <pre v-if="responseData">{{ formatJson(responseData) }}</pre>
-                <p v-else-if="responseError" class="error-message">{{ responseError }}</p>
-                <p v-else class="placeholder-text">请发送请求查看返回数据</p>
+              <div class="response-header">
+                <div class="response-status" v-if="responseData">
+                  <span class="status-code" :class="statusCodeClass">{{ responseData.status }}</span>
+                  <span class="response-time">{{ responseTime }}ms</span>
+                  <span class="response-size">{{ responseSize }}B</span>
+                </div>
+                <div class="response-tabs">
+                  <div
+                    class="response-tab-item"
+                    :class="{ 'active': activeResponseTab === 'body' }"
+                    @click="activeResponseTab = 'body'"
+                  >
+                    响应体
+                  </div>
+                  <div
+                    class="response-tab-item"
+                    :class="{ 'active': activeResponseTab === 'headers' }"
+                    @click="activeResponseTab = 'headers'"
+                  >
+                    响应头
+                  </div>
+                  <div
+                    class="response-tab-item"
+                    :class="{ 'active': activeResponseTab === 'cookies' }"
+                    @click="activeResponseTab = 'cookies'"
+                  >
+                    Cookies
+                  </div>
+                  <div
+                    class="response-tab-item"
+                    :class="{ 'active': activeResponseTab === 'timeline' }"
+                    @click="activeResponseTab = 'timeline'"
+                  >
+                    时间线
+                  </div>
+                </div>
+                <div class="response-actions">
+                  <button class="response-action-btn" @click="copyResponse">
+                    复制
+                  </button>
+                  <button class="response-action-btn" @click="saveResponse">
+                    保存
+                  </button>
+                  <select v-model="responseViewFormat" class="response-view-select">
+                    <option value="pretty">美化</option>
+                    <option value="raw">原始</option>
+                    <option value="preview">预览</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- 响应内容 -->
+              <div class="response-content">
+                <div v-if="activeResponseTab === 'body'">
+                  <pre v-if="responseData" class="response-body">{{ formatResponseData() }}</pre>
+                  <div v-else-if="responseError" class="error-message">{{ responseError }}</div>
+                  <div v-else class="empty-response">
+                    <p>发送请求后将显示响应结果</p>
+                  </div>
+                </div>
+
+                <div v-if="activeResponseTab === 'headers'" class="response-headers">
+                  <div v-if="responseData && responseData.headers" class="headers-list">
+                    <div v-for="(value, key) in responseData.headers" :key="key" class="header-item">
+                      <span class="header-key">{{ key }}:</span>
+                      <span class="header-value">{{ value }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="empty-section">
+                    <p>无响应头数据</p>
+                  </div>
+                </div>
+
+                <div v-if="activeResponseTab === 'cookies'" class="response-cookies">
+                  <div v-if="responseData && responseData.cookies && responseData.cookies.length > 0" class="cookies-list">
+                    <div v-for="(cookie, index) in responseData.cookies" :key="index" class="cookie-item">
+                      <span class="cookie-name">{{ cookie.name }}:</span>
+                      <span class="cookie-value">{{ cookie.value }}</span>
+                    </div>
+                  </div>
+                  <div v-else class="empty-section">
+                    <p>无Cookies数据</p>
+                  </div>
+                </div>
+
+                <div v-if="activeResponseTab === 'timeline'" class="response-timeline">
+                  <div v-if="responseData" class="timeline-chart">
+                    <div class="timeline-bar">
+                      <div class="timeline-segment dns" :style="{ width: timelineData.dns + '%' }" title="DNS: {{ timelineData.dns }}ms"></div>
+                      <div class="timeline-segment connect" :style="{ width: timelineData.connect + '%' }" title="连接: {{ timelineData.connect }}ms"></div>
+                      <div class="timeline-segment send" :style="{ width: timelineData.send + '%' }" title="发送: {{ timelineData.send }}ms"></div>
+                      <div class="timeline-segment wait" :style="{ width: timelineData.wait + '%' }" title="等待: {{ timelineData.wait }}ms"></div>
+                      <div class="timeline-segment receive" :style="{ width: timelineData.receive + '%' }" title="接收: {{ timelineData.receive }}ms"></div>
+                    </div>
+                    <div class="timeline-stats">
+                      <div class="timeline-stat">
+                        <span class="stat-label">DNS:</span>
+                        <span class="stat-value">{{ timelineData.dns }}ms</span>
+                      </div>
+                      <div class="timeline-stat">
+                        <span class="stat-label">连接:</span>
+                        <span class="stat-value">{{ timelineData.connect }}ms</span>
+                      </div>
+                      <div class="timeline-stat">
+                        <span class="stat-label">发送:</span>
+                        <span class="stat-value">{{ timelineData.send }}ms</span>
+                      </div>
+                      <div class="timeline-stat">
+                        <span class="stat-label">等待:</span>
+                        <span class="stat-value">{{ timelineData.wait }}ms</span>
+                      </div>
+                      <div class="timeline-stat">
+                        <span class="stat-label">接收:</span>
+                        <span class="stat-value">{{ timelineData.receive }}ms</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="empty-section">
+                    <p>无时间线数据</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -142,20 +481,133 @@ export default {
         { id: 'environment', name: '环境配置' },
         { id: 'log', name: '执行日志' }
       ],
-      activeSection: 'interface-list', // 默认激活接口列表
+      activeSection: 'interface-list',
 
-      // 接口测试相关数据
+      // 接口测试核心数据
       host: 'https://api.example.com',
-      endpoint: '/data',
+      endpoint: 'users',
       selectedMethod: 'GET',
+
+      // 请求标签页
+      activeTab: 'params',
+
+      // 请求参数
+      params: [
+        { key: '', value: '', description: '' }
+      ],
+
+      // 请求头
+      headers: [
+        { key: 'Content-Type', value: 'application/json' },
+        { key: '', value: '' }
+      ],
+
+      // 请求体
+      activeBodyTab: 'form-data',
+      bodyType: 'form-data',
+      rawBodyType: 'json',
+      rawBodyContent: '{\n  "key": "value"\n}',
+      formDataFields: [
+        { key: '', value: '', type: 'text' }
+      ],
+
+      // 认证
+      authType: 'none',
+      authData: {
+        username: '',
+        password: '',
+        token: ''
+      },
+
+      // 响应数据
       responseData: null,
-      responseError: null
+      responseError: null,
+      responseTime: 0,
+      responseSize: 0,
+      activeResponseTab: 'body',
+      responseViewFormat: 'pretty',
+      timelineData: {
+        dns: 0,
+        connect: 0,
+        send: 0,
+        wait: 0,
+        receive: 0
+      }
+    }
+  },
+  computed: {
+    activeFunctionItem() {
+      return this.functionItems.find(item => item.id === this.activeSection) || { name: '未知功能' };
+    },
+    statusCodeClass() {
+      if (!this.responseData) return '';
+      const status = this.responseData.status;
+      if (status >= 200 && status < 300) return 'success';
+      if (status >= 300 && status < 400) return 'redirect';
+      if (status >= 400 && status < 500) return 'client-error';
+      if (status >= 500) return 'server-error';
+      return '';
     }
   },
   methods: {
     // 返回首页
     handleGoBack() {
       this.$router.push('/home');
+    },
+
+    // 参数操作
+    addParam() {
+      this.params.push({ key: '', value: '', description: '' });
+    },
+    removeParam(index) {
+      this.params.splice(index, 1);
+    },
+
+    // 请求头操作
+    addHeader() {
+      this.headers.push({ key: '', value: '' });
+    },
+    removeHeader(index) {
+      this.headers.splice(index, 1);
+    },
+
+    // 表单数据操作
+    addFormDataField() {
+      this.formDataFields.push({ key: '', value: '', type: 'text' });
+    },
+    removeFormDataField(index) {
+      this.formDataFields.splice(index, 1);
+    },
+    updateFormFieldType() {
+
+    },
+
+    // 响应操作
+    copyResponse() {
+      if (!this.responseData) return;
+
+      const textToCopy = this.formatResponseData();
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert('响应内容已复制到剪贴板');
+      }).catch(err => {
+        console.error('无法复制内容: ', err);
+      });
+    },
+    saveResponse() {
+      if (!this.responseData) return;
+      // 这里可以实现保存响应的逻辑
+      alert('响应内容已保存');
+    },
+
+    // 格式化响应数据
+    formatResponseData() {
+      if (!this.responseData) return '';
+
+      const data = this.responseData.data;
+      if (this.responseViewFormat === 'raw') {
+        return JSON.stringify(data);
+      }
+      return JSON.stringify(data, null, 2);
     },
 
     // 发送请求
@@ -177,61 +629,122 @@ export default {
       this.responseData = null;
       this.responseError = null;
 
-      // 这里仅做示例，实际项目中应使用axios等工具发送请求
-      // 拼接完整URL
-      const url = this.host + this.endpoint;
+      // 构建完整URL
+      let url = this.host;
+      if (!url.endsWith('/') && !this.endpoint.startsWith('/')) {
+        url += '/';
+      }
+      url += this.endpoint;
+
+      // 添加查询参数
+      const queryParams = this.params
+        .filter(p => p.key)
+        .map(p => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
+        .join('&');
+
+      if (queryParams) {
+        url += (url.includes('?') ? '&' : '?') + queryParams;
+      }
+
+      // 记录开始时间
+      const startTime = Date.now();
 
       // 模拟API请求
       setTimeout(() => {
         try {
+          // 计算响应时间
+          this.responseTime = Date.now() - startTime;
+
+          // 生成随机的时间线数据
+          this.generateTimelineData();
+
           // 模拟不同请求方式的返回数据
           this.responseData = {
             status: 200,
-            message: '请求成功',
+            statusText: 'OK',
             method: this.selectedMethod,
             url: url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Server': 'nginx',
+              'Date': new Date().toUTCString(),
+              'Cache-Control': 'no-cache'
+            },
+            cookies: [
+              { name: 'sessionId', value: 'abc123' },
+              { name: 'token', value: 'def456' }
+            ],
             data: {
-              id: 1,
-              name: '测试数据',
-              timestamp: new Date().toISOString(),
-              items: [
-                { id: 101, title: '项目1' },
-                { id: 102, title: '项目2' }
-              ]
+              success: true,
+              message: '操作成功',
+              data: {
+                id: 1,
+                name: '测试用户',
+                email: 'test@example.com',
+                roles: ['user', 'admin'],
+                createdAt: '2023-01-01T00:00:00Z',
+                updatedAt: new Date().toISOString()
+              },
+              pagination: {
+                page: 1,
+                pageSize: 10,
+                total: 100
+              }
             }
           };
+
+          // 计算响应大小
+          this.responseSize = JSON.stringify(this.responseData).length;
+
         } catch (error) {
           this.responseError = `请求失败: ${error.message}`;
         }
-      }, 800);
+      }, 800 + Math.random() * 500); // 随机延迟模拟网络请求
     },
 
-    // 格式化JSON数据
-    formatJson(json) {
-      return JSON.stringify(json, null, 2);
-    }
-  },
-  computed: {
-    // 直接获取激活项
-    activeFunctionItem() {
-      return this.functionItems.find(item => item.id === this.activeSection) || { name: '未知功能' };
+    // 生成随机的时间线数据
+    generateTimelineData() {
+      // 生成各个阶段的随机时间
+      const dns = Math.floor(Math.random() * 100);
+      const connect = Math.floor(Math.random() * 200);
+      const send = Math.floor(Math.random() * 50);
+      const wait = Math.floor(Math.random() * 500);
+      const receive = Math.floor(Math.random() * 200);
+
+      // 计算总时间
+      const total = dns + connect + send + wait + receive;
+
+      // 计算百分比（用于显示）
+      this.timelineData = {
+        dns: total > 0 ? (dns / total) * 100 : 0,
+        connect: total > 0 ? (connect / total) * 100 : 0,
+        send: total > 0 ? (send / total) * 100 : 0,
+        wait: total > 0 ? (wait / total) * 100 : 0,
+        receive: total > 0 ? (receive / total) * 100 : 0,
+        // 保存原始毫秒值用于显示
+        dnsMs: dns,
+        connectMs: connect,
+        sendMs: send,
+        waitMs: wait,
+        receiveMs: receive
+      };
     }
   }
 }
 </script>
 
 <style scoped>
-/* 根容器：基础布局*/
+/* 根容器样式 */
 .api-info-container {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  padding: 80px 20px 20px; /* 上下内边距，左右留空适配小屏幕 */
+  padding: 80px 20px 20px;
   box-sizing: border-box;
 }
 
-/* 背景图片：全屏覆盖，不影响内容布局 */
+/* 背景图片 */
 .bg-image {
   position: absolute;
   top: 0;
@@ -247,7 +760,7 @@ export default {
   object-fit: cover;
 }
 
-/* 页面标题：自适应居中，避免遮挡 */
+/* 页面标题 */
 .page-title {
   position: absolute;
   top: 20px;
@@ -255,34 +768,34 @@ export default {
   transform: translateX(-50%);
   margin: 0;
   z-index: 10;
-  font-size: clamp(1.5rem, 3vw, 2rem); /* 响应式字体大小 */
+  font-size: clamp(1.5rem, 3vw, 2rem);
   color: #333;
   font-weight: 600;
-  white-space: nowrap; /* 防止标题换行 */
+  white-space: nowrap;
 }
 
-/* 确保左右区域高度一致 */
+/* 主内容区 */
 .main-content {
   display: flex;
-  gap: 24px; /* 左右区域间距 */
+  gap: 24px;
   width: 100%;
-  height: 100%; /* 占满根容器剩余高度 */
-  min-height: 300px; /* 最小高度，避免内容过短时布局坍塌 */
+  height: 100%;
+  min-height: 300px;
 }
 
+/* 左侧功能栏 */
 .function-sidebar {
   display: flex;
   flex-direction: column;
-  gap: 16px; /* 返回按钮与列表间距 */
-  width: clamp(160px, 20vw, 200px); /* 响应式宽度 */
-  background-color: rgba(255, 255, 255, 0.9);
+  gap: 16px;
+  width: clamp(160px, 20vw, 200px);
+  background-color: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 16px;
   box-sizing: border-box;
 }
 
-/* 返回按钮 */
 .back-btn {
   background: transparent;
   border: none;
@@ -299,7 +812,6 @@ export default {
   color: #2196F3;
 }
 
-/* 功能列表 */
 .function-list {
   list-style: none;
   margin: 0;
@@ -316,7 +828,7 @@ export default {
   margin-bottom: 4px;
 }
 .function-item.active {
-  background-color: #2196F3; /* 接口测试主题色：蓝色 */
+  background-color: #2196F3;
   color: white;
   font-weight: 500;
 }
@@ -325,137 +837,718 @@ export default {
   color: #2196F3;
 }
 
+/* 右侧内容区 */
 .content-area {
   flex: 1;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 32px;
+  padding: 24px;
   box-sizing: border-box;
   overflow-y: auto;
 }
 
-/* 右侧内容区内部样式 */
 .content-section {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
+
 .section-title {
   color: #333;
   font-size: 1.5rem;
-  margin: 0 0 16px;
+  margin: 0;
   padding-bottom: 8px;
   border-bottom: 1px solid #eee;
 }
 
-/* 接口列表样式 */
+/* 接口列表内容样式 */
 .interface-list-content {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  height: 100%;
 }
 
-.form-group {
+/* 接口卡片 */
+.interface-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 8px;
 }
 
-.form-label {
-  font-weight: 500;
-  color: #333;
-  font-size: 0.95rem;
-}
-
-.form-input {
-  padding: 10px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #2196F3;
-  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
-}
-
-.radio-group {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 8px 0;
-}
-
-.radio-item {
+/* 请求头部 */
+.request-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+}
+
+.method-selector {
+  min-width: 100px;
+}
+
+.method-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  font-weight: 500;
   cursor: pointer;
-  color: #555;
+  transition: all 0.2s;
+}
+
+.method-dropdown:focus {
+  outline: none;
+  border-color: #2196F3;
+}
+
+.url-input-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 300px;
+}
+
+.host-input {
+  width: 250px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+  font-size: 0.9rem;
+  border-right: none;
+}
+
+.url-separator {
+  color: #999;
+  padding: 0 4px;
+}
+
+.endpoint-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 0;
+  font-size: 0.9rem;
+}
+
+.host-input:focus, .endpoint-input:focus {
+  outline: none;
+  border-color: #2196F3;
 }
 
 .send-btn {
-  align-self: flex-start;
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: #2196F3;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .send-btn:hover {
   background-color: #0c7cd5;
 }
 
-.response-section {
-  margin-top: 16px;
+.send-icon {
+  font-weight: bold;
+}
+
+/* 请求标签页 */
+.request-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  background-color: #fafafa;
+}
+
+.tab-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.tab-item.active {
+  border-bottom-color: #2196F3;
+  color: #2196F3;
+  font-weight: 500;
+  background-color: white;
+}
+
+.tab-item:hover:not(.active) {
+  background-color: #f0f0f0;
+}
+
+/* 标签页内容 */
+.tab-content {
+  padding: 16px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 参数内容 */
+.params-content, .headers-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.params-table, .headers-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.params-header, .header-header {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  font-weight: 500;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.param-column, .header-column {
+  flex: 1;
+}
+
+.param-column:first-child, .header-column:first-child {
+  flex: 1;
+}
+
+.param-column:nth-child(2), .header-column:nth-child(2) {
+  flex: 1;
+}
+
+.param-column:nth-child(3) {
+  flex: 1.5;
+}
+
+.param-column:last-child, .header-column:last-child {
+  width: 40px;
+  flex: none;
+}
+
+.param-row, .header-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.param-input, .header-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.param-input:first-child, .header-input:first-child {
+  flex: 1;
+}
+
+.param-input:nth-child(2) {
+  flex: 1;
+}
+
+.param-input:nth-child(3) {
+  flex: 1.5;
+}
+
+/* 按钮样式 */
+.add-btn {
+  align-self: flex-start;
+  padding: 6px 12px;
+  background-color: #f5f5f5;
+  color: #555;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  background-color: #e9e9e9;
+}
+
+.remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  padding: 0;
+}
+
+.remove-btn:hover {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.remove-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 请求体内容 */
+.body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.body-type-selector {
+  display: flex;
+  gap: 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.body-type-item {
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.body-type-item.active {
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
+  color: #1565c0;
+}
+
+.body-type-item:hover:not(.active) {
+  background-color: #f5f5f5;
+}
+
+.raw-body-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.raw-type-selector {
+  align-self: flex-start;
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.raw-body-input {
+  width: 100%;
+  min-height: 200px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.form-data-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-data-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-data-header {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  font-weight: 500;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.form-data-column {
+  flex: 1;
+}
+
+.form-data-column:first-child, .form-data-column:nth-child(2) {
+  flex: 2;
+}
+
+.form-data-column:nth-child(3) {
+  width: 100px;
+  flex: none;
+}
+
+.form-data-column:last-child {
+  width: 40px;
+  flex: none;
+}
+
+.form-data-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.form-data-input {
+  flex: 2;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.form-data-type {
+  width: 100px;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.form-data-file {
+  flex: 2;
+  padding: 6px 0;
+  font-size: 0.9rem;
+}
+
+.body-placeholder, .auth-placeholder {
+  padding: 40px 20px;
+  text-align: center;
+  color: #888;
+  background-color: #fafafa;
+  border-radius: 4px;
+}
+
+/* 认证内容 */
+.auth-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-type-selector {
+  align-self: flex-start;
+}
+
+.auth-type-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.auth-fields {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.response-title {
-  font-size: 1.1rem;
-  color: #333;
-  margin: 0;
-}
-
-.response-data {
-  background-color: #f8f9fa;
-  border-radius: 4px;
   padding: 16px;
-  min-height: 200px;
-  border: 1px solid #eee;
-  overflow-x: auto;
+  background-color: #fafafa;
+  border-radius: 4px;
 }
 
-.response-data pre {
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-field label {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.auth-input {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* 响应区域 */
+.response-section {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+}
+
+.response-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.response-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.9rem;
+}
+
+.status-code {
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: white;
+}
+
+.status-code.success {
+  background-color: #4caf50;
+}
+
+.status-code.redirect {
+  background-color: #ff9800;
+}
+
+.status-code.client-error {
+  background-color: #f44336;
+}
+
+.status-code.server-error {
+  background-color: #9e9e9e;
+}
+
+.response-time, .response-size {
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.response-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.response-tab-item {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.response-tab-item.active {
+  background-color: white;
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.response-tab-item:hover:not(.active) {
+  background-color: #e9e9e9;
+}
+
+.response-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.response-action-btn {
+  padding: 4px 8px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.response-action-btn:hover {
+  background-color: #f5f5f5;
+}
+
+.response-view-select {
+  padding: 4px 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+/* 响应内容 */
+.response-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.response-body {
   margin: 0;
   color: #333;
   font-family: monospace;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  white-space: pre;
+  overflow-x: auto;
 }
 
 .error-message {
-  color: #dc3545;
+  color: #721c24;
+  background-color: #f8d7da;
+  padding: 16px;
+  border-radius: 4px;
   margin: 0;
-  text-align: center;
-  line-height: 200px;
+  border: 1px solid #f5c6cb;
 }
 
-.placeholder-text {
-  color: #6c757d;
+.empty-response, .empty-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+  background-color: #fafafa;
+  border-radius: 4px;
   margin: 0;
-  text-align: center;
-  line-height: 200px;
+}
+
+/* 响应头和Cookies样式 */
+.response-headers, .response-cookies {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headers-list, .cookies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.header-item, .cookie-item {
+  display: flex;
+  padding: 8px 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.header-key, .cookie-name {
+  font-weight: 500;
+  margin-right: 8px;
+  color: #2c3e50;
+  min-width: 150px;
+}
+
+.header-value, .cookie-value {
+  color: #34495e;
+  word-break: break-all;
+}
+
+/* 时间线样式 */
+.response-timeline {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.timeline-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.timeline-bar {
+  height: 30px;
+  display: flex;
+  width: 100%;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.timeline-segment {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+
+.timeline-segment.dns {
+  background-color: #42a5f5;
+}
+
+.timeline-segment.connect {
+  background-color: #66bb6a;
+}
+
+.timeline-segment.send {
+  background-color: #ec407a;
+}
+
+.timeline-segment.wait {
+  background-color: #ffa726;
+}
+
+.timeline-segment.receive {
+  background-color: #26c6da;
+}
+
+.timeline-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.timeline-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  min-width: 100px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
 }
 
 /* 其他功能区占位符 */
@@ -475,48 +1568,116 @@ export default {
 
 /* 滚动条样式 */
 .content-area::-webkit-scrollbar,
-.function-sidebar::-webkit-scrollbar {
+.function-sidebar::-webkit-scrollbar,
+.tab-content::-webkit-scrollbar,
+.response-content::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
+
 .content-area::-webkit-scrollbar-track,
-.function-sidebar::-webkit-scrollbar-track {
+.function-sidebar::-webkit-scrollbar-track,
+.tab-content::-webkit-scrollbar-track,
+.response-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 10px;
 }
+
 .content-area::-webkit-scrollbar-thumb,
-.function-sidebar::-webkit-scrollbar-thumb {
+.function-sidebar::-webkit-scrollbar-thumb,
+.tab-content::-webkit-scrollbar-thumb,
+.response-content::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 10px;
 }
+
 .content-area::-webkit-scrollbar-thumb:hover,
-.function-sidebar::-webkit-scrollbar-thumb:hover {
+.function-sidebar::-webkit-scrollbar-thumb:hover,
+.tab-content::-webkit-scrollbar-thumb:hover,
+.response-content::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
 
 /* 响应式适配 */
+@media (max-width: 1024px) {
+  .url-input-group {
+    min-width: 200px;
+  }
+
+  .host-input {
+    width: 180px;
+  }
+}
+
 @media (max-width: 768px) {
   .api-info-container {
     padding: 70px 10px 10px;
   }
+
   .page-title {
     font-size: 1.2rem;
   }
+
   .main-content {
     gap: 12px;
   }
+
   .function-sidebar {
     padding: 12px;
   }
+
   .content-area {
     padding: 16px;
   }
 
-  .radio-group {
-    gap: 12px;
+  .request-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .method-selector {
+    width: 100%;
+  }
+
+  .method-dropdown {
+    width: 100%;
+  }
+
+  .url-input-group {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .host-input {
+    width: 40%;
   }
 
   .send-btn {
     width: 100%;
+    justify-content: center;
+  }
+
+  .response-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .response-status, .response-tabs, .response-actions {
+    width: 100%;
+  }
+
+  .response-tabs {
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .timeline-stats {
+    flex-direction: column;
+  }
+
+  .timeline-stat {
+    width: 100%;
+    min-width: auto;
   }
 }
 </style>
