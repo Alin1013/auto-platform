@@ -1,6 +1,11 @@
 <template>
   <div class="home-container">
-    <!-- 背景图片容器：修复图片路径解析问题 -->
+    <!-- 个人中心入口 -->
+    <div class="user-profile" @click="handleProfileClick">
+      <img src="@/assets/user-avatar.png" alt="用户头像" class="avatar" />
+    </div>
+
+    <!-- 背景图片容器 -->
     <div class="bg-image">
       <img :src="backgroundImg" alt="主页面背景" />
     </div>
@@ -13,7 +18,7 @@
       <div class="box-content">
         <h3>项目区域</h3>
 
-        <!-- 横向滑动容器：显示滚动条 -->
+        <!-- 横向滑动容器 -->
         <div class="project-scroll-container">
           <!-- 渲染已有的项目 -->
           <div class="project-list" v-if="projects.length > 0">
@@ -25,17 +30,19 @@
             >
               <div class="card-header">
                 <span class="project-name" :title="project.name">{{ project.name }}</span>
-                <span class="project-type" :class="project.testType === 'apiTest' ? 'type-api' : 'type-ui'">
+                <span
+                  class="project-type"
+                  :class="project.testType === 'apiTest' ? 'type-api' : 'type-ui'"
+                >
                   {{ project.testTypeLabel }}
                 </span>
               </div>
               <div class="card-footer">
                 <span class="project-time">{{ project.createTime }}</span>
-                <!-- .stop 防止事件冒泡，避免点击删除时触发卡片跳转 -->
                 <button
                   class="delete-btn"
                   @click.stop="handleDeleteProject(project.id, project.name)"
-                  :disabled="isDeleting"
+                  :disabled="isDeleting || deleteingProjectId === project.id"
                 >
                   {{ isDeleting && deleteingProjectId === project.id ? '删除中...' : '删除' }}
                 </button>
@@ -43,7 +50,7 @@
             </div>
           </div>
 
-          <!-- 无项目提示：优化文案和样式 -->
+          <!-- 无项目提示 -->
           <div class="no-project" v-else>
             <i class="no-project-icon">📂</i>
             <p>暂无项目</p>
@@ -51,11 +58,11 @@
           </div>
         </div>
 
-        <!-- 添加新项目按钮：增加加载状态 -->
+        <!-- 添加新项目按钮 -->
         <button
           class="add-item-btn"
           @click="handleAddItem"
-          :disabled="isNavigating"
+          :disabled="isNavigating || isDeleting"
         >
           <i class="add-icon">+</i>
           <span>{{ isNavigating ? '跳转中...' : '添加新项目' }}</span>
@@ -63,7 +70,7 @@
       </div>
     </div>
 
-    <!-- 失败提示模态框：统一处理成功/失败/确认场景 -->
+    <!-- 统一模态框 -->
     <FailModal
       :visible="modalVisible"
       :message="modalMessage"
@@ -76,7 +83,6 @@
 </template>
 
 <script>
-// 导入背景图片（解决路径解析问题，适配Vue 2/3）
 import backgroundImg from '@/assets/background.png';
 import FailModal from '@/components/FailModal.vue';
 
@@ -85,131 +91,142 @@ export default {
   components: { FailModal },
   data() {
     return {
-      backgroundImg, // 挂载图片资源到data
+      backgroundImg,
       projects: [],
       modalVisible: false,
       modalMessage: '',
-      modalType: 'fail', // 支持：fail/success/confirm
-      deleteProjectId: null, // 暂存当前要删除的项目ID
-      deleteingProjectId: null, // 正在删除的项目ID（用于加载状态）
-      projectName: '', // 暂存当前要删除的项目名称
-      isDeleting: false, // 删除操作加载状态
-      isNavigating: false // 页面跳转加载状态
+      modalType: 'fail',
+      deleteProjectId: null,
+      deleteingProjectId: null,
+      projectName: '',
+      isDeleting: false,
+      isNavigating: false,
+      modalTimer: null
     }
   },
   mounted() {
-    // 页面加载时自动获取项目列表
     this.loadProjects();
   },
   watch: {
-    // 路由变化时重新加载项目（如从新增页面返回时）
     $route: {
       handler: 'loadProjects',
-      immediate: false
+      immediate: false,
+      deep: false
     }
   },
   methods: {
-    /**
-     * 加载项目列表：修复接口数据解析，增加错误处理
-     */
+    handleProfileClick() {
+      if (this.isNavigating || this.isDeleting) return;
+
+      this.isNavigating = true;
+      this.$router.push('/UserProfile')
+        .then(() => {
+          this.isNavigating = false;
+        })
+        .catch(error => {
+          this.showModal('跳转到个人中心失败，请重试', 'fail');
+          console.error('个人中心跳转失败：', error);
+          this.isNavigating = false;
+        });
+    },
+
     async loadProjects() {
       try {
-        // 调用后端接口（确保地址正确）
-        const response = await this.$axios.get('http://localhost:8080/api/projects/');
+        const response = await this.$axios.get('http://localhost:8080/api/projects');
         const data = response.data || {};
 
-        // 兼容后端两种返回格式：分页对象（含results）/纯数组
         const projectList = Array.isArray(data.results)
           ? data.results
           : (Array.isArray(data) ? data : []);
 
-        // 格式化数据（字段映射+时间格式化）
         this.projects = projectList.map(project => ({
           id: project.id,
           name: project.name || '未命名项目',
-          testType: project.test_type || 'apiTest', // 默认值兜底
+          testType: project.test_type || 'apiTest',
           testTypeLabel: project.test_type === 'apiTest' ? '接口测试' : 'UI测试',
-          // 优化时间格式（避免时区问题）
-          createTime: new Date(project.create_time).toLocaleString('zh-CN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-          })
+          createTime: project.create_time
+            ? new Date(project.create_time).toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+              })
+            : '未知时间'
         }));
 
-        // 若有项目，滚动容器自动滚动到最左侧
         this.$nextTick(() => {
           const scrollContainer = document.querySelector('.project-scroll-container');
           if (scrollContainer) scrollContainer.scrollLeft = 0;
         });
 
       } catch (error) {
-        // 错误分类处理：网络错误/接口错误
-        const errorMsg = error.message.includes('Network Error')
-          ? '网络错误，请检查后端服务是否启动'
-          : `加载项目失败：${error.response?.data?.detail || error.message}`;
+        let errorMsg;
+        if (error.message.includes('Network Error')) {
+          errorMsg = '网络错误，请检查后端服务是否启动（端口8080）';
+        } else if (error.response) {
+          errorMsg = `加载失败：${error.response.data?.detail || '服务器内部错误'}`;
+        } else {
+          errorMsg = `加载失败：${error.message}`;
+        }
 
         this.showModal(errorMsg, 'fail');
-        console.error('加载项目失败：', error);
-        this.projects = []; // 出错时置空列表，避免页面异常
+        console.error('加载项目列表错误：', error);
+        this.projects = [];
       }
     },
 
-    /**
-     * 卡片点击：跳转到对应测试页面，增加状态管理
-     */
     handleCardClick(project) {
       if (this.isNavigating || this.isDeleting) return;
 
       this.isNavigating = true;
-      try {
-        // 根据测试类型跳转不同页面，传递完整项目信息
-        const routeConfig = {
-          apiTest: { path: '/ApiInfo', title: '接口测试' },
-          uiTest: { path: '/UiInfo', title: 'UI测试' }
-        };
+      const routeMap = {
+        apiTest: '/ApiInfo',
+        uiTest: '/UiInfo'
+      };
 
-        const config = routeConfig[project.testType];
-        if (config) {
-          this.$router.push({
-            path: config.path,
-            query: {
-              projectId: project.id,
-              projectName: project.name,
-              projectType: project.testType
-            }
-          });
-        } else {
-          this.showModal(`当前「${project.testTypeLabel}」类型暂不支持查看详情`, 'fail');
+      const targetRoute = routeMap[project.testType];
+      if (targetRoute) {
+        this.$router.push({
+          path: targetRoute,
+          query: {
+            projectId: project.id,
+            projectName: project.name,
+            projectType: project.testType
+          }
+        })
+        .then(() => {
           this.isNavigating = false;
-        }
-      } catch (error) {
-        this.showModal('页面跳转失败，请重试', 'fail');
-        console.error('跳转失败：', error);
+        })
+        .catch(error => {
+          this.showModal('跳转项目详情失败，请重试', 'fail');
+          console.error('项目跳转错误：', error);
+          this.isNavigating = false;
+        });
+      } else {
+        this.showModal(`当前「${project.testTypeLabel}」类型暂不支持查看`, 'fail');
         this.isNavigating = false;
       }
     },
 
-    /**
-     * 新增项目：跳转页面，增加加载状态
-     */
     handleAddItem() {
-      if (this.isNavigating) return;
+      if (this.isNavigating || this.isDeleting) return;
+
       this.isNavigating = true;
-      this.$router.push('/NewOption').catch(error => {
-        this.showModal('跳转新增页面失败，请重试', 'fail');
-        console.error('跳转失败：', error);
-        this.isNavigating = false;
-      });
+      this.$router.push('/NewOption')
+        .then(() => {
+          this.isNavigating = false;
+        })
+        .catch(error => {
+          this.showModal('跳转新增项目页面失败，请重试', 'fail');
+          console.error('新增项目跳转错误：', error);
+          this.isNavigating = false;
+        });
     },
 
-    /**
-     * 触发删除：直接传递项目ID和名称，减少find操作
-     */
     handleDeleteProject(projectId, projectName) {
       if (this.isDeleting) return;
+
       this.deleteProjectId = projectId;
       this.projectName = projectName;
       this.modalType = 'confirm';
@@ -217,11 +234,7 @@ export default {
       this.modalVisible = true;
     },
 
-    /**
-     * 模态框确认：仅处理删除逻辑（统一入口）
-     */
     async handleModalConfirm() {
-      // 只有确认删除且有项目ID时执行
       if (this.modalType !== 'confirm' || !this.deleteProjectId) {
         this.modalVisible = false;
         return;
@@ -231,43 +244,47 @@ export default {
         this.isDeleting = true;
         this.deleteingProjectId = this.deleteProjectId;
 
-        // 调用后端删除接口（关键：同步删除数据库数据，而非仅前端删除）
-        await this.$axios.delete(`http://localhost:8080/api/projects/${this.deleteProjectId}/`);
+        await this.$axios.delete(`http://localhost:8081/api/projects/${this.deleteProjectId}`);
 
-        // 前端同步更新列表（无需重新请求接口，优化性能）
         this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
         this.showModal(`项目「${this.projectName}」删除成功！`, 'success');
       } catch (error) {
-        const errorMsg = error.response?.data?.detail || '删除失败，请重试';
-        this.showModal(`删除项目失败：${errorMsg}`, 'fail');
-        console.error('删除项目失败：', error);
+        const errorMsg = error.response?.data?.detail || '服务器删除接口异常';
+        this.showModal(`删除失败：${errorMsg}`, 'fail');
+        console.error('删除项目错误：', error);
       } finally {
-        // 重置状态
         this.isDeleting = false;
         this.deleteingProjectId = null;
         this.deleteProjectId = null;
-        this.projectName = '';
+        this.projectName = null;
         this.modalVisible = false;
       }
     },
 
-    /**
-     * 显示模态框：封装通用方法，减少重复代码
-     */
     showModal(message, type = 'fail') {
+      if (this.modalTimer) {
+        clearTimeout(this.modalTimer);
+        this.modalTimer = null;
+      }
+
       this.modalMessage = message;
       this.modalType = type;
       this.modalVisible = true;
 
-      // 成功/失败弹窗3秒后自动关闭
       if (type === 'success' || type === 'fail') {
-        this.modalTimer && clearTimeout(this.modalTimer);
         this.modalTimer = setTimeout(() => {
           this.modalVisible = false;
+          this.modalTimer = null;
         }, 3000);
       }
     }
   },
+  // 修复：将beforeDestroy替换为beforeUnmount
+  beforeUnmount() {
+    if (this.modalTimer) {
+      clearTimeout(this.modalTimer);
+    }
+  }
 }
 </script>
 
@@ -280,14 +297,13 @@ export default {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* 背景图片：修复层级，避免遮挡内容 */
 .bg-image {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.6; /* 降低透明度，提高文字可读性 */
+  opacity: 0.6;
   z-index: 1;
 }
 
@@ -295,10 +311,9 @@ export default {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  user-select: none; /* 禁止选中图片 */
+  user-select: none;
 }
 
-/* 标题样式：优化位置和视觉效果 */
 .page-title {
   position: absolute;
   top: 30px;
@@ -306,13 +321,12 @@ export default {
   transform: translateX(-50%);
   margin: 0;
   z-index: 10;
-  font-size: 2.5rem;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   color: #2c3e50;
   font-weight: 600;
   text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
 }
 
-/* 中间卡片容器：优化响应式和阴影 */
 .center-box {
   position: absolute;
   top: 50%;
@@ -322,20 +336,20 @@ export default {
   width: 90%;
   max-width: 1200px;
   min-height: 350px;
+  max-height: 80vh;
   background-color: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
   padding: 24px;
   box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .box-content {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   gap: 20px;
 }
 
@@ -346,18 +360,15 @@ export default {
   font-weight: 500;
 }
 
-/* 滚动容器：优化padding和最小高度 */
 .project-scroll-container {
   width: 100%;
   overflow-x: auto;
   overflow-y: hidden;
   padding: 12px 0;
   min-height: 140px;
-  position: relative;
   box-sizing: border-box;
 }
 
-/* 自定义滚动条：适配主流浏览器 */
 .project-scroll-container::-webkit-scrollbar {
   height: 8px;
 }
@@ -378,7 +389,6 @@ export default {
   scrollbar-color: #bdc3c7 #f5f5f5;
 }
 
-/* 项目列表：优化间距和排列 */
 .project-list {
   display: flex;
   gap: 20px;
@@ -386,7 +396,6 @@ export default {
   padding: 8px 0;
 }
 
-/* 项目卡片：优化视觉层次和交互 */
 .project-card {
   width: 280px;
   min-height: 140px;
@@ -398,8 +407,6 @@ export default {
   flex-direction: column;
   justify-content: space-between;
   transition: all 0.3s ease;
-  text-align: center;
-  position: relative;
   cursor: pointer;
   border: 1px solid #f0f0f0;
 }
@@ -410,7 +417,6 @@ export default {
   border-color: #e0e0e0;
 }
 
-/* 卡片头部：优化文字溢出处理 */
 .card-header {
   display: flex;
   flex-direction: column;
@@ -429,7 +435,6 @@ export default {
   width: 100%;
 }
 
-/* 项目类型标签：区分接口/UI测试 */
 .project-type {
   font-size: 0.85rem;
   color: #ffffff;
@@ -439,14 +444,13 @@ export default {
 }
 
 .type-api {
-  background-color: #3498db; /* 接口测试：蓝色 */
+  background-color: #3498db;
 }
 
 .type-ui {
-  background-color: #2ecc71; /* UI测试：绿色 */
+  background-color: #2ecc71;
 }
 
-/* 卡片底部：优化布局 */
 .card-footer {
   font-size: 0.8rem;
   color: #7f8c8d;
@@ -461,7 +465,6 @@ export default {
   text-align: center;
 }
 
-/* 删除按钮：优化位置和状态 */
 .delete-btn {
   position: absolute;
   right: 0;
@@ -477,6 +480,76 @@ export default {
   transition: background-color 0.2s;
   z-index: 5;
   display: flex;
-  align-items: center
+  align-items: center;
+}
+
+.user-profile {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  z-index: 20;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.user-profile:hover {
+  transform: scale(1.05);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.add-item-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.3s;
+  margin-top: 10px;
+}
+
+.add-item-btn:hover {
+  background-color: #2980b9;
+}
+
+.add-item-btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+}
+
+.add-icon {
+  font-size: 1.2rem;
+}
+
+.no-project {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #7f8c8d;
+}
+
+.no-project-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.no-project-tip {
+  font-size: 0.9rem;
+  margin-top: 5px;
+  color: #95a5a6;
 }
 </style>

@@ -4,16 +4,18 @@ import router from './router'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
 import axios from 'axios'
+import store from "./store";
 
-// 创建 Vue 应用实例
+// 创建应用实例
 const app = createApp(App)
 
-// 全局注册 axios
+// 1. 配置全局属性（如 axios）
 app.config.globalProperties.$axios = axios;
 
-// 安装路由和 Element Plus
-app.use(router)
-app.use(ElementPlus)
+// 2. 安装插件
+app.use(router)       // 路由
+app.use(store)        // Vuex 状态管理
+app.use(ElementPlus)  // UI组件库
 
-// 挂载到 DOM
+// 3. 挂载到DOM
 app.mount('#app')

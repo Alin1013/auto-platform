@@ -6,6 +6,7 @@ import SuccessModal from '@/components/SuccessModal.vue'
 import FailModal from '@/components/FailModal.vue'
 import UiInfo from '@/components/UiInfo.vue'
 import ApiInfo from '@/components/ApiInfo.vue'
+import UserProfile from "@/components/UserProfile.vue";
 
 const router = createRouter({
   history: createWebHashHistory(), // 使用哈希路由
@@ -54,6 +55,11 @@ const router = createRouter({
           props: route => ({
         currentProjectName: route.query.projectName
       })
+      },
+      {
+          path:'/UserProfile',
+          name:'UserProfile',
+          component: UserProfile,
       }
   ]
 })
