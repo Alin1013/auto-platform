@@ -1232,7 +1232,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
