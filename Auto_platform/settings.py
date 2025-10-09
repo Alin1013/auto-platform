@@ -6,7 +6,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",  # 前端服务地址
+    "http://localhost:8081",  # 前端服务地址
 ]
 
 # Quick-start development settings - unsuitable for production
@@ -40,8 +40,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'core.middleware.CorsMiddleware',#跨域中间件
-    'django.middleware.common.CommonMiddleware',
+    'core.middleware.CorsMiddleware',  # 自定义跨域中间件
+    'django.middleware.common.CommonMiddleware',  # 系统默认中间件
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -51,7 +51,7 @@ MIDDLEWARE = [
 # 允许跨域
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8181",  # Vue前端地址
+    "http://localhost:8081",  # Vue前端地址
 ]
 
 # 测试报告存储路径
