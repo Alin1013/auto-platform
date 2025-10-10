@@ -32,10 +32,9 @@ const store = createStore({
       }
     },
 
-    UPDATE_AVATAR(state, newAvatarUrl) {
-      if (typeof newAvatarUrl === 'string') {
-        state.userInfo.avatar = newAvatarUrl;
-      }
+    UPDATE_AVATAR(state, avatarUrl) {
+        state.userInfo.avatar = avatarUrl;
+        localStorage.setItem('userInfo',JSON.stringify(state.userInfo));
     },
 
     LOGOUT(state) {

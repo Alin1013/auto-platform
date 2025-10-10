@@ -7,6 +7,7 @@ import FailModal from '@/components/FailModal.vue'
 import UiInfo from '@/components/UiInfo.vue'
 import ApiInfo from '@/components/ApiInfo.vue'
 import UserProfile from "@/components/UserProfile.vue";
+import RegisterPage from "@/components/RegisterPage.vue";
 
 const router = createRouter({
   history: createWebHashHistory(), // 使用哈希路由
@@ -60,6 +61,11 @@ const router = createRouter({
           path:'/UserProfile',
           name:'UserProfile',
           component: UserProfile,
+      },
+      {
+          path:'/register',
+          name:'RegisterPage',
+          component: RegisterPage
       }
   ]
 })

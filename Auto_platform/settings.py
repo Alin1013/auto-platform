@@ -32,12 +32,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'users',
     'api.apps.ApiConfig',
     'ui.apps.UiConfig',
     'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'core.middleware.CorsMiddleware',  # 自定义跨域中间件
@@ -66,6 +68,12 @@ REST_FRAMEWORK = {
 }
 
 ROOT_URLCONF = 'Auto_platform.urls'
+# 允许跨域请求携带 cookie
+CORS_ALLOW_CREDENTIALS = True
+
+# 配置媒体文件存储（用于保存上传的头像）
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'  # 头像会保存在项目根目录的 media 文件夹下
 
 TEMPLATES = [
     {

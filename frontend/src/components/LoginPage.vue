@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
-     <!-- 左侧插画部分 -->
-    <div class="Login">
+    <!-- 左侧插画部分 -->
+    <div class="illustration">
       <img src="@/assets/Login.png" alt="登录插画" />
     </div>
     <div class="login-form-wrapper">
@@ -33,15 +33,12 @@
               </template>
             </el-input>
           </el-form-item>
+          <!-- 按钮区域：登录和注册按钮居中展示 -->
           <el-form-item>
-            <el-row :gutter="10">
-              <el-col :span="12">
-                <el-button type="primary" @click="handleLogin">登录</el-button>
-              </el-col>
-              <el-col :span="12">
-                <el-button @click="resetForm">重置</el-button>
-              </el-col>
-            </el-row>
+            <div class="button-group">
+              <el-button type="primary" @click="handleLogin">登录</el-button>
+              <el-button type="success" @click="toRegister">注册</el-button>
+            </div>
           </el-form-item>
         </el-form>
       </div>
@@ -78,8 +75,9 @@ export default {
         }
       })
     },
-    resetForm() {
-      this.$refs.loginForm.resetFields()
+    // 修复方法名大小写错误
+    toRegister() {
+      this.$router.push('/register');
     }
   }
 }
@@ -123,5 +121,18 @@ export default {
   width: 40px;
   height: 40px;
   margin-right: 10px;
+}
+
+/* 按钮组样式：实现居中展示 */
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* 按钮之间的间距 */
+  width: 100%;
+}
+
+/* 按钮样式调整，确保大小一致 */
+.button-group .el-button {
+  min-width: 120px;
 }
 </style>
