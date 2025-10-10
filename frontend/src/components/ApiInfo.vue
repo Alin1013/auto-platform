@@ -568,389 +568,72 @@
 </template>
 
 <script>
-import SuccessModal from '@/components/SuccessModal.vue';
-import FailModal from '@/components/FailModal.vue';
+import request from '@/utils/request';
+import axios from "axios";
 
 export default {
-  name: 'ApiInfo',
-  components: {
-    SuccessModal,
-    FailModal
-  },
-  props: {
-    currentProjectName: {
-      type: String,
-      required: true,
-      default: '未命名接口测试项目'
-    }
-  },
   data() {
     return {
-      functionItems: [
-        {id: 'interface-list', name: '接口列表'},
-        {id: 'test-case', name: '测试用例'},
-        {id: 'test-report', name: '测试报告'},
-        {id: 'environment', name: '环境配置'},
-        {id: 'log', name: '执行日志'}
-      ],
-      activeSection: 'interface-list',
-
-      // 接口测试核心数据
-      host: 'https://api.example.com',
-      endpoint: 'users',
-      selectedMethod: 'GET',
-
-      // 请求标签页
-      activeTab: 'params',
-
-      // 请求参数
-      params: [
-        {key: '', value: '', description: ''}
-      ],
-
-      // 请求头
-      headers: [
-        {key: 'Content-Type', value: 'application/json'},
-        {key: '', value: ''}
-      ],
-
-      // 请求体
-      bodyType: 'form-data',
-      rawBodyType: 'json',
-      rawBodyContent: '{\n  "key": "value"\n}',
-      formDataFields: [
-        {key: '', value: '', type: 'text'}
-      ],
-
-      // 认证
-      authType: 'none',
-      authData: {
-        username: '',
-        password: '',
-        token: ''
-      },
-
-      // 响应数据
-      responseData: null,
-      responseError: null,
-      responseTime: 0,
-      responseSize: 0,
-      activeResponseTab: 'body',
-      responseViewFormat: 'pretty',
-      timelineData: {
-        dns: 0,
-        connect: 0,
-        send: 0,
-        wait: 0,
-        receive: 0,
-        dnsMs: 0,
-        connectMs: 0,
-        sendMs: 0,
-        waitMs: 0,
-        receiveMs: 0
-      },
-
-      // 测试用例相关数据
+      currentProjectName: '',
       testCases: [],
-      showAddTestCaseModal: false,
-      newTestCase: {
+      selectedTestCase: null,
+      // 表单数据
+      formData: {
         name: '',
         url: '',
         method: 'GET',
-        description: ''
-      },
-      deleteIndex: -1, // 记录待删除的用例索引
-
-      // 弹窗状态
-      showSuccessModal: false,
-      successMessage: '',
-      showFailModal: false,
-      failMessage: '',
-      failModalType: 'fail' // 'fail' 或 'confirm'
-    }
-  },
-  computed: {
-    activeFunctionItem() {
-      return this.functionItems.find(item => item.id === this.activeSection) || {name: '未知功能'};
-    },
-    statusCodeClass() {
-      if (!this.responseData) return '';
-      const status = this.responseData.status;
-      if (status >= 200 && status < 300) return 'success';
-      if (status >= 300 && status < 400) return 'redirect';
-      if (status >= 400 && status < 500) return 'client-error';
-      if (status >= 500) return 'server-error';
-      return '';
-    }
+        headers: '',
+        params: '',
+        body: ''
+      }
+    };
   },
   mounted() {
-    // 从本地存储加载测试用例
     this.loadTestCases();
   },
   methods: {
-    // 加载测试用例
-    loadTestCases() {
-      const key = `testCases_${this.currentProjectName}`;
-      const saved = localStorage.getItem(key);
-      this.testCases = saved ? JSON.parse(saved) : [];
-    },
-
-    // 保存测试用例到本地存储
-    saveTestCases() {
-      const key = `testCases_${this.currentProjectName}`;
-      localStorage.setItem(key, JSON.stringify(this.testCases));
-    },
-
-    // 返回首页
-    handleGoBack() {
-      this.$router.push('/home');
-    },
-
-    // 参数操作
-    addParam() {
-      this.params.push({key: '', value: '', description: ''});
-    },
-    removeParam(index) {
-      this.params.splice(index, 1);
-    },
-
-    // 请求头操作
-    addHeader() {
-      this.headers.push({key: '', value: ''});
-    },
-    removeHeader(index) {
-      this.headers.splice(index, 1);
-    },
-
-    // 表单数据操作
-    addFormDataField() {
-      this.formDataFields.push({key: '', value: '', type: 'text'});
-    },
-    removeFormDataField(index) {
-      this.formDataFields.splice(index, 1);
-    },
-    updateFormFieldType() {
-      // 可以在这里添加字段类型变更的处理逻辑
-    },
-
-    // 响应操作
-    copyResponse() {
-      if (!this.responseData) return;
-
-      const textToCopy = this.formatResponseData();
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        alert('响应内容已复制到剪贴板');
-      }).catch(err => {
-        console.error('无法复制内容: ', err);
-      });
-    },
-    saveResponse() {
-      if (!this.responseData) return;
-      // 这里可以实现保存响应的逻辑
-      alert('响应内容已保存');
-    },
-
-    // 格式化响应数据
-    formatResponseData() {
-      if (!this.responseData) return '';
-
-      const data = this.responseData.data;
-      if (this.responseViewFormat === 'raw') {
-        return JSON.stringify(data);
+    // 获取项目下的接口用例
+    async loadTestCases() {
+      try {
+        const res = await request.get(`/api-test/test-cases/?project__name=${this.currentProjectName}`);
+        this.testCases = res.data.results;
+      } catch (err) {
+        console.error('加载用例失败', err);
       }
-      return JSON.stringify(data, null, 2);
     },
+    // 保存接口用例
+    async saveTestCase() {
+      try {
+        const project = await request.get(`/core/projects/?name=${this.currentProjectName}`);
+        const projectId = project.data.results[0].id;
 
-    // 发送请求
-    sendRequest() {
-      // 简单验证
-      if (!this.host) {
-        this.responseError = '请输入Host地址';
-        this.responseData = null;
-        return;
+        await request.post('/api-test/test-cases/', {
+          ...this.formData,
+          project: projectId
+        });
+        this.$message.success('保存成功');
+        this.loadTestCases();
+      } catch (err) {
+        console.error('保存失败', err);
       }
-
-      if (!this.endpoint) {
-        this.responseError = '请输入接口路径';
-        this.responseData = null;
-        return;
-      }
-
-      // 重置响应状态
-      this.responseData = null;
-      this.responseError = null;
-
-      // 构建完整URL
-      let url = this.host;
-      if (!url.endsWith('/') && !this.endpoint.startsWith('/')) {
-        url += '/';
-      }
-      url += this.endpoint;
-
-      // 添加查询参数
-      const queryParams = this.params
-          .filter(p => p.key)
-          .map(p => `${encodeURIComponent(p.key)}=${encodeURIComponent(p.value)}`)
-          .join('&');
-
-      if (queryParams) {
-        url += (url.includes('?') ? '&' : '?') + queryParams;
-      }
-
-      // 记录开始时间
-      const startTime = Date.now();
-
-      // 模拟API请求
-      setTimeout(() => {
-        try {
-          // 计算响应时间
-          this.responseTime = Date.now() - startTime;
-
-          // 生成随机的时间线数据
-          this.generateTimelineData();
-
-          // 模拟不同请求方式的返回数据
-          this.responseData = {
-            status: 200,
-            statusText: 'OK',
-            method: this.selectedMethod,
-            url: url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Server': 'nginx',
-              'Date': new Date().toUTCString(),
-              'Cache-Control': 'no-cache'
-            },
-            cookies: [
-              {name: 'sessionId', value: 'abc123'},
-              {name: 'token', value: 'def456'}
-            ],
-            data: {
-              success: true,
-              message: '操作成功',
-              data: {
-                id: 1,
-                name: '测试用户',
-                email: 'test@example.com',
-                roles: ['user', 'admin'],
-                createdAt: '2023-01-01T00:00:00Z',
-                updatedAt: new Date().toISOString()
-              },
-              pagination: {
-                page: 1,
-                pageSize: 10,
-                total: 100
-              }
-            }
-          };
-
-          // 计算响应大小
-          this.responseSize = JSON.stringify(this.responseData).length;
-
-        } catch (error) {
-          this.responseError = `请求失败: ${error.message}`;
-        }
-      }, 800 + Math.random() * 500); // 随机延迟模拟网络请求
     },
-
-    // 生成随机的时间线数据
-    generateTimelineData() {
-      // 生成各个阶段的随机时间
-      const dns = Math.floor(Math.random() * 100);
-      const connect = Math.floor(Math.random() * 200);
-      const send = Math.floor(Math.random() * 50);
-      const wait = Math.floor(Math.random() * 500);
-      const receive = Math.floor(Math.random() * 200);
-
-      // 计算总时间
-      const total = dns + connect + send + wait + receive;
-
-      // 计算百分比（用于显示）
-      this.timelineData = {
-        dns: total > 0 ? (dns / total) * 100 : 0,
-        connect: total > 0 ? (connect / total) * 100 : 0,
-        send: total > 0 ? (send / total) * 100 : 0,
-        wait: total > 0 ? (wait / total) * 100 : 0,
-        receive: total > 0 ? (receive / total) * 100 : 0,
-        // 保存原始毫秒值用于显示
-        dnsMs: dns,
-        connectMs: connect,
-        sendMs: send,
-        waitMs: wait,
-        receiveMs: receive
-      };
-    },
-
-    // 添加测试用例
-    handleAddTestCase() {
-      const name = this.newTestCase.name.trim();
-      if (!name) {
-        this.showFailModal = true;
-        this.failMessage = '测试用例名称不能为空';
-        this.failModalType = 'fail';
-        return;
+    // 发送接口请求
+    async sendRequest() {
+      try {
+        const response = await axios({
+          method: this.formData.method,
+          url: this.formData.url,
+          headers: this.formData.headers ? JSON.parse(this.formData.headers) : {},
+          params: this.formData.params ? JSON.parse(this.formData.params) : {},
+          data: this.formData.body ? JSON.parse(this.formData.body) : {}
+        });
+        this.$refs.responseView.setResponse(response);
+      } catch (err) {
+        this.$refs.responseView.setError(err.response);
       }
-
-      // 检查是否重名
-      const isDuplicate = this.testCases.some(item => item.name.trim() === name);
-      if (isDuplicate) {
-        this.showFailModal = true;
-        this.failMessage = '该测试用例名称已存在';
-        this.failModalType = 'fail';
-        return;
-      }
-
-      // 深拷贝避免引用问题
-      const caseToAdd = {...this.newTestCase};
-      this.testCases.push(caseToAdd);
-
-      // 保存到本地存储
-      this.saveTestCases();
-
-      // 重置表单并关闭弹窗
-      this.newTestCase = {
-        name: '',
-        url: '',
-        method: 'GET',
-        description: ''
-      };
-      this.showAddTestCaseModal = false;
-
-      // 显示成功提示
-      this.showSuccessModal = true;
-      this.successMessage = `测试用例「${name}」`;
-    },
-
-    // 处理删除确认
-    handleDeleteTestCase(index, name) {
-      this.deleteIndex = index;
-      this.showFailModal = true;
-      this.failMessage = `确定要删除测试用例「${name}」吗？`;
-      this.failModalType = 'confirm';
-    },
-
-    // 成功弹窗确认
-    handleSuccessConfirm() {
-      this.showSuccessModal = false;
-    },
-
-    // 失败/确认弹窗确认
-    handleFailConfirm() {
-      if (this.failModalType === 'confirm' && this.deleteIndex !== -1) {
-        // 执行删除操作
-        const deletedName = this.testCases[this.deleteIndex].name;
-        this.testCases.splice(this.deleteIndex, 1);
-        this.saveTestCases();
-
-        // 显示删除成功提示
-        this.showSuccessModal = true;
-        this.successMessage = `测试用例「${deletedName}」删除成功`;
-        this.deleteIndex = -1;
-      }
-      this.showFailModal = false;
     }
   }
-}
+};
 </script>
 
 <style scoped>

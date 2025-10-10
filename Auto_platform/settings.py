@@ -1,28 +1,18 @@
-
-
 from pathlib import Path
 import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 跨域配置
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8081",  # 前端服务地址
+    "http://localhost:8081",  # 前端地址
 ]
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-d$a6#f0#jyfp)2j!+m3ko=ma5qgc^gg^#x4e^1wsn8_zwmts3@'
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
+# 应用配置
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -32,56 +22,68 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'users',
-    'api.apps.ApiConfig',
-    'ui.apps.UiConfig',
-    'core.apps.CoreConfig',
+    'rest_framework_simplejwt',  # JWT认证
+    'core',
+    'api',
+    'ui',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'core.middleware.CorsMiddleware',  # 自定义跨域中间件
-    'django.middleware.common.CommonMiddleware',  # 系统默认中间件
+    'corsheaders.middleware.CorsMiddleware',  # 跨域中间件
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# 允许跨域
-CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8081",  # Vue前端地址
+# 自定义用户模型
+AUTH_USER_MODEL = 'core.User'
+
+# 静态文件配置（解决 staticfiles 依赖错误）
+STATIC_URL = '/static/'  # 静态文件访问前缀
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # 生产环境静态文件收集目录
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),  # 开发环境静态文件存放目录
 ]
 
-# 测试报告存储路径
+# 媒体文件配置（头像）
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# 测试报告路径
 REPORT_ROOT = os.path.join(BASE_DIR, 'reports')
 if not os.path.exists(REPORT_ROOT):
     os.makedirs(REPORT_ROOT)
 
-# REST Framework配置
+# DRF配置
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
 
 ROOT_URLCONF = 'Auto_platform.urls'
-# 允许跨域请求携带 cookie
-CORS_ALLOW_CREDENTIALS = True
 
-# 配置媒体文件存储（用于保存上传的头像）
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'  # 头像会保存在项目根目录的 media 文件夹下
-
+# 数据库配置（默认SQLite）
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',  # 必须保留这一行
+        'DIRS': [],  # 模板文件目录（默认空即可）
+        'APP_DIRS': True,  # 允许从应用内的 templates 目录加载模板
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -89,58 +91,5 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'Auto_platform.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-
-USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
+# 统一所有模型的默认主键类型为 BigAutoField（支持更大整数范围）
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

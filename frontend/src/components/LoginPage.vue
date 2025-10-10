@@ -47,40 +47,44 @@
 </template>
 
 <script>
-import { User, Lock } from '@element-plus/icons-vue'
+import request from '@/utils/request';
+import { useRouter } from 'vue-router';
 
 export default {
-  name: 'LoginPage',
-  components: { User, Lock }, // 注册图标组件
   data() {
     return {
       loginForm: {
         username: '',
         password: ''
-      },
-      loginRules: {
-        username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-        password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
       }
-    }
+    };
+  },
+  setup() {
+    return {
+      router: useRouter()
+    };
   },
   methods: {
-    handleLogin() {
-      this.$refs.loginForm.validate((valid) => {
-        if (valid) {
-          console.log('登录参数:', this.loginForm)
-          this.$router.push('/home') // 路由跳转
-        } else {
-          console.log('表单验证失败')
-        }
-      })
+    async handleLogin() {
+      try {
+        const res = await request.post('/core/token/', this.loginForm);
+        localStorage.setItem('access_token', res.data.access);
+        localStorage.setItem('refresh_token', res.data.refresh);
+        this.router.push('/home');
+      } catch (err) {
+        this.$message.error('用户名或密码错误');
+      }
     },
-    // 修复方法名大小写错误
-    toRegister() {
-      this.$router.push('/register');
+    async handleRegister() {
+      try {
+        await request.post('/core/register/', this.loginForm);
+        this.$message.success('注册成功，请登录');
+      } catch (err) {
+        this.$message.error('注册失败');
+      }
     }
   }
-}
+};
 </script>
 
 <style scoped>
