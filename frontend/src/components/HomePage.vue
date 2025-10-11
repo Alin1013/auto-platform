@@ -85,7 +85,7 @@
 <script>
 import backgroundImg from '@/assets/background.png';
 import FailModal from '@/components/FailModal.vue';
-import request from "@/utils/request";
+import request from "@/utils/request"; // 导入request工具
 
 export default {
   name: 'HomePage',
@@ -133,7 +133,8 @@ export default {
 
     async loadProjects() {
       try {
-        const response = await request.get('/core/projects');
+        // 修复1：接口路径添加斜杠结尾，符合RESTful规范
+        const response = await request.get('/core/projects/');
         const data = response.data || {};
 
         const projectList = Array.isArray(data.results)
@@ -164,6 +165,7 @@ export default {
       } catch (error) {
         let errorMsg;
         if (error.message.includes('Network Error')) {
+          // 端口提示与request配置一致（假设request基础路径为8080）
           errorMsg = '网络错误，请检查后端服务是否启动（端口8080）';
         } else if (error.response) {
           errorMsg = `加载失败：${error.response.data?.detail || '服务器内部错误'}`;
@@ -245,7 +247,8 @@ export default {
         this.isDeleting = true;
         this.deleteingProjectId = this.deleteProjectId;
 
-        await this.request.delete(`/core/projects/${this.deleteProjectId}`);
+        // 修复3：变量引用错误（this.request → request），路径添加斜杠结尾
+        await request.delete(`/core/projects/${this.deleteProjectId}/`);
 
         this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
         this.showModal(`项目「${this.projectName}」删除成功！`, 'success');
@@ -280,7 +283,6 @@ export default {
       }
     }
   },
-  // 修复：将beforeDestroy替换为beforeUnmount
   beforeUnmount() {
     if (this.modalTimer) {
       clearTimeout(this.modalTimer);
@@ -290,6 +292,7 @@ export default {
 </script>
 
 <style scoped>
+/* 样式部分保持不变 */
 .home-container {
   position: relative;
   width: 100vw;

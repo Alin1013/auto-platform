@@ -6,17 +6,13 @@ const request = axios.create({
 });
 
 // 请求拦截器（添加Token）
-request.interceptors.request.use(
-  config => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  error => Promise.reject(error)
-);
-
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`; // 注意Bearer后有空格
+  }
+  return config;
+});
 // 响应拦截器（处理Token过期）
 request.interceptors.response.use(
   response => response,
