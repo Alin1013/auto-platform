@@ -2,7 +2,7 @@
   <div class="home-container">
     <!-- 个人中心入口 -->
     <div class="user-profile" @click="handleProfileClick">
-      <img src="@/assets/user-avatar.png" alt="用户头像" class="avatar" />
+      <img :src="userAvatar" alt="用户头像" class="avatar" />
     </div>
 
     <!-- 背景图片容器 -->
@@ -85,7 +85,8 @@
 <script>
 import backgroundImg from '@/assets/background.png';
 import FailModal from '@/components/FailModal.vue';
-import request from "@/utils/request"; // 导入request工具
+import request from "@/utils/request";
+import { mapState } from 'vuex'; // 导入Vuex辅助函数
 
 export default {
   name: 'HomePage',
@@ -105,8 +106,22 @@ export default {
       modalTimer: null
     }
   },
+  computed: {
+    // 从Vuex获取用户头像
+    ...mapState({
+      userInfo: state => state.userInfo
+    }),
+    // 计算用户头像地址，优先使用用户信息中的头像，否则使用默认头像
+    userAvatar() {
+      return this.userInfo.avatarUrl 
+        ? this.userInfo.avatarUrl 
+        : require('@/assets/user-avatar.png');
+    }
+  },
   mounted() {
     this.loadProjects();
+    // 页面加载时获取用户信息
+    this.fetchUserInfo();
   },
   watch: {
     $route: {
@@ -116,6 +131,20 @@ export default {
     }
   },
   methods: {
+    // 获取当前登录用户信息
+    async fetchUserInfo() {
+      try {
+        const response = await request.get('/user/me/');
+        this.$store.commit('SET_USER_INFO', {
+          username: response.data.username,
+          avatarUrl: response.data.avatar
+        });
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        // 失败时不影响主流程，继续使用默认头像
+      }
+    },
+
     handleProfileClick() {
       if (this.isNavigating || this.isDeleting) return;
 
@@ -133,8 +162,7 @@ export default {
 
     async loadProjects() {
       try {
-        // 修复1：接口路径添加斜杠结尾，符合RESTful规范
-        const response = await request.get('/core/projects/');
+        const response = await request.get('/api/core/projects/');
         const data = response.data || {};
 
         const projectList = Array.isArray(data.results)
@@ -165,8 +193,7 @@ export default {
       } catch (error) {
         let errorMsg;
         if (error.message.includes('Network Error')) {
-          // 端口提示与request配置一致（假设request基础路径为8080）
-          errorMsg = '网络错误，请检查后端服务是否启动（端口8080）';
+          errorMsg = '网络错误，请检查后端服务是否启动';
         } else if (error.response) {
           errorMsg = `加载失败：${error.response.data?.detail || '服务器内部错误'}`;
         } else {
@@ -247,8 +274,7 @@ export default {
         this.isDeleting = true;
         this.deleteingProjectId = this.deleteProjectId;
 
-        // 修复3：变量引用错误（this.request → request），路径添加斜杠结尾
-        await request.delete(`/core/projects/${this.deleteProjectId}/`);
+        await request.delete(`/api/projects/${this.deleteProjectId}/`);
 
         this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
         this.showModal(`项目「${this.projectName}」删除成功！`, 'success');

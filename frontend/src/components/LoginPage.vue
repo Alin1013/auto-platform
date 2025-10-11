@@ -84,7 +84,7 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        const res = await request.post('/core/token/', this.loginForm);
+        const res = await request.post('/api/token/', this.loginForm);
         localStorage.setItem('access_token', res.data.access);
         localStorage.setItem('refresh_token', res.data.refresh);
         this.router.push('/home');
