@@ -85,6 +85,7 @@
 <script>
 import backgroundImg from '@/assets/background.png';
 import FailModal from '@/components/FailModal.vue';
+import request from "@/utils/request";
 
 export default {
   name: 'HomePage',
@@ -132,7 +133,7 @@ export default {
 
     async loadProjects() {
       try {
-        const response = await this.$axios.get('http://localhost:8080/api/projects');
+        const response = await request.get('/core/projects');
         const data = response.data || {};
 
         const projectList = Array.isArray(data.results)
@@ -244,7 +245,7 @@ export default {
         this.isDeleting = true;
         this.deleteingProjectId = this.deleteProjectId;
 
-        await this.$axios.delete(`http://localhost:8081/api/projects/${this.deleteProjectId}`);
+        await this.request.delete(`/core/projects/${this.deleteProjectId}`);
 
         this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
         this.showModal(`项目「${this.projectName}」删除成功！`, 'success');

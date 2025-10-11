@@ -24,12 +24,18 @@
           </el-form-item>
           <el-form-item prop="password">
             <el-input
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
               v-model="loginForm.password"
               placeholder="密码"
             >
               <template #prefix>
                 <el-icon><Lock /></el-icon>
+              </template>
+              <template #suffix>
+                <el-icon @click="showPassword = !showPassword" style="cursor: pointer">
+                  <EyeOff v-if="showPassword" />
+                  <Eye v-else />
+                </el-icon>
               </template>
             </el-input>
           </el-form-item>
@@ -49,13 +55,24 @@
 <script>
 import request from '@/utils/request';
 import { useRouter } from 'vue-router';
+import { User, Lock, Eye, EyeOff } from '@element-plus/icons-vue';
 
 export default {
+  components: { User, Lock, Eye, EyeOff },
   data() {
     return {
       loginForm: {
         username: '',
         password: ''
+      },
+      showPassword: false,
+      loginRules: {
+        username: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' }
+        ]
       }
     };
   },
@@ -75,9 +92,6 @@ export default {
         this.$message.error('用户名或密码错误');
       }
     },
-    toRegister() {
-      this.router.push('/register');
-    },
     async handleRegister() {
       try {
         await request.post('/core/register/', this.loginForm);
@@ -85,6 +99,9 @@ export default {
       } catch (err) {
         this.$message.error('注册失败');
       }
+    },
+    toRegister() {
+      this.$router.push('/register');
     }
   }
 };
