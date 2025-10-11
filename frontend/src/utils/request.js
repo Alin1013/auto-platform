@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const request = axios.create({
-  baseURL: 'http://localhost:8000/api',  // 后端API基础地址
+  baseURL: 'http://localhost:8080/api',  // 后端API基础地址
   timeout: 5000
 });
 
@@ -26,10 +26,11 @@ request.interceptors.response.use(
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');
       try {
-        const res = await axios.post('http://localhost:8000/api/core/token/refresh/', {
+        const res = await axios.post('http://localhost:8080/api/core/token/refresh/', {
           refresh: refreshToken
         });
         localStorage.setItem('access_token', res.data.access);
+        localStorage.setItem('refresh_token', res.data.refresh);
         return request(originalRequest);
       } catch (err) {
         // 刷新Token失败，跳转登录

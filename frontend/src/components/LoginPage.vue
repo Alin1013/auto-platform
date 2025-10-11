@@ -75,6 +75,9 @@ export default {
         this.$message.error('用户名或密码错误');
       }
     },
+    toRegister() {
+      this.router.push('/register');
+    },
     async handleRegister() {
       try {
         await request.post('/core/register/', this.loginForm);

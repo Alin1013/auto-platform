@@ -85,7 +85,8 @@
 
 <script>
 import { User, Lock } from '@element-plus/icons-vue';
-import defaultAvatar from '@/assets/user-avatar.png';
+import defaultAvatar from '@/assets/default-avatar.png';
+import request from "@/utils/request";
 
 export default {
   components: { User, Lock },
@@ -136,7 +137,7 @@ export default {
       reader.readAsDataURL(file);
     },
 
-    handleRegister() {
+    async handleRegister() {
       this.$refs.registerForm.validate(async (valid) => {
         if (valid) {
           try {
@@ -148,7 +149,7 @@ export default {
             }
 
             // 调用注册接口
-            await this.$axios.post('/api/register', formData, {
+            await this.$axios.post('/core/register', formData, {
               headers: { 'Content-Type': 'multipart/form-data' }
             });
 
