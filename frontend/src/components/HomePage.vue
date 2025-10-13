@@ -86,7 +86,7 @@
 import backgroundImg from '@/assets/background.png';
 import FailModal from '@/components/FailModal.vue';
 import request from "@/utils/request";
-import { mapState } from 'vuex'; // 导入Vuex辅助函数
+import { mapState } from 'vuex';
 
 export default {
   name: 'HomePage',
@@ -107,20 +107,17 @@ export default {
     }
   },
   computed: {
-    // 从Vuex获取用户头像
     ...mapState({
       userInfo: state => state.userInfo
     }),
-    // 计算用户头像地址，优先使用用户信息中的头像，否则使用默认头像
     userAvatar() {
-      return this.userInfo.avatarUrl 
-        ? this.userInfo.avatarUrl 
+      return this.userInfo.avatar
+        ? this.userInfo.avatar
         : require('@/assets/user-avatar.png');
     }
   },
   mounted() {
     this.loadProjects();
-    // 页面加载时获取用户信息
     this.fetchUserInfo();
   },
   watch: {
@@ -131,18 +128,15 @@ export default {
     }
   },
   methods: {
-    // 获取当前登录用户信息
     async fetchUserInfo() {
       try {
         const response = await request.get('/core/user/me/');
-        this.$store.commit('SET_USER_INFO', {
+        this.$store.commit('LOGIN', {
           username: response.data.username,
-          avatarUrl: response.data.avatar
+          avatar: response.data.avatar  // 修正：与UserProfile组件保持一致的字段名
         });
-        this.$store.commit('UPDATE_AVATAR', response.data.avatar);
       } catch (error) {
         console.error('获取用户信息失败:', error);
-        // 失败时不影响主流程，继续使用默认头像
       }
     },
 
@@ -150,7 +144,7 @@ export default {
       if (this.isNavigating || this.isDeleting) return;
 
       this.isNavigating = true;
-      this.$router.push('/UserProfile')
+      this.$router.push('/userprofile')
         .then(() => {
           this.isNavigating = false;
         })
@@ -276,7 +270,6 @@ export default {
         this.deleteingProjectId = this.deleteProjectId;
 
         await request.delete(`/core/projects/${this.deleteProjectId}/`);
-
 
         this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
         this.showModal(`项目「${this.projectName}」删除成功！`, 'success');

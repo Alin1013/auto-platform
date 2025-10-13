@@ -6,8 +6,8 @@ import SuccessModal from '@/components/SuccessModal.vue'
 import FailModal from '@/components/FailModal.vue'
 import UiInfo from '@/components/UiInfo.vue'
 import ApiInfo from '@/components/ApiInfo.vue'
-import UserProfile from "@/components/UserProfile.vue";
 import RegisterPage from "@/components/RegisterPage.vue";
+
 
 const router = createRouter({
   history: createWebHashHistory(), // 使用哈希路由
@@ -58,9 +58,9 @@ const router = createRouter({
       })
       },
       {
-          path:'/UserProfile',
+          path:'/userprofile',
           name:'UserProfile',
-          component: UserProfile,
+          component: () => import ('@/components/UserProfile.vue'),
       },
       {
           path:'/register',
@@ -68,6 +68,14 @@ const router = createRouter({
           component: RegisterPage
       }
   ]
+});
+router.beforeEach((to, from, next) => {
+  const isLogin = localStorage.getItem('access_token');
+  // 未登录用户禁止访问非登录/注册页面
+  if (!isLogin && to.path !== '/login' && to.path !== '/register') {
+    next('/login');
+  } else {
+    next();
+  }
 })
-
 export default router

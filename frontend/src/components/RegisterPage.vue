@@ -12,7 +12,7 @@
           <el-form-item>
             <div class="avatar-upload-wrapper">
               <div class="avatar-upload-container">
-                <img :src="avatarUrl" alt="预览头像" class="avatar-preview" />
+                <img :src="avatar" alt="预览头像" class="avatar-preview" />
                 <input
                   type="file"
                   class="avatar-upload-input"
