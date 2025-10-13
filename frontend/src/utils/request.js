@@ -22,7 +22,7 @@ request.interceptors.response.use(
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');
       try {
-        const res = await axios.post('http://localhost:8080/api/core/token/refresh/', {
+        const res = await axios.post('/api/core/token/refresh/', {
           refresh: refreshToken
         });
         localStorage.setItem('access_token', res.data.access);

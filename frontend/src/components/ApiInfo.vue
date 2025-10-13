@@ -585,29 +585,119 @@ export default {
         headers: '',
         params: '',
         body: ''
-      }
+      },
+      // 功能项配置（与UiInfo保持一致结构）
+      functionItems: [
+        { id: 'interface-list', name: '接口列表' },
+        { id: 'test-case', name: '测试用例' },
+        { id: 'test-report', name: '测试报告' },
+        { id: 'environment', name: '环境配置' },
+        { id: 'log', name: '日志' }
+      ],
+      activeSection: 'interface-list', // 默认激活接口列表
+      // 其他必要数据
+      selectedMethod: 'GET',
+      host: '',
+      endpoint: '',
+      activeTab: 'params',
+      params: [{ key: '', value: '', description: '' }],
+      headers: [{ key: '', value: '' }],
+      bodyType: 'form-data',
+      rawBodyType: 'json',
+      rawBodyContent: '',
+      formDataFields: [{ key: '', value: '', type: 'text' }],
+      authType: 'none',
+      authData: {
+        username: '',
+        password: '',
+        token: ''
+      },
+      responseData: null,
+      responseError: null,
+      responseTime: 0,
+      responseSize: 0,
+      activeResponseTab: 'body',
+      responseViewFormat: 'pretty',
+      timelineData: {
+        dns: 0,
+        connect: 0,
+        send: 0,
+        wait: 0,
+        receive: 0,
+        dnsMs: 0,
+        connectMs: 0,
+        sendMs: 0,
+        waitMs: 0,
+        receiveMs: 0
+      },
+      showAddTestCaseModal: false,
+      newTestCase: {
+        name: '',
+        url: '',
+        method: 'GET',
+        description: ''
+      },
+      showSuccessModal: false,
+      successMessage: '',
+      showFailModal: false,
+      failMessage: '',
+      failModalType: 'confirm'
     };
   },
+  computed: {
+    // 获取激活的功能项
+    activeFunctionItem() {
+      return this.functionItems.find(item => item.id === this.activeSection) || { name: '未知功能' };
+    },
+    // 状态码样式
+    statusCodeClass() {
+      if (!this.responseData) return '';
+      const status = this.responseData.status;
+      if (status >= 200 && status < 300) return 'success';
+      if (status >= 300 && status < 400) return 'redirect';
+      if (status >= 400 && status < 500) return 'client-error';
+      if (status >= 500) return 'server-error';
+      return '';
+    }
+  },
   mounted() {
+    // 从路由参数获取项目名称
+    this.currentProjectName = this.$route.query.projectName || '';
     this.loadTestCases();
   },
   methods: {
+    // 返回首页
+    handleGoBack() {
+      this.$router.push('/home');
+    },
     // 获取项目下的接口用例
     async loadTestCases() {
       try {
-        const res = await request.get(`/api-test/test-cases/?project__name=${this.currentProjectName}`);
+        const projectRes = await request.get(`/api/core/projects/?name=${this.currentProjectName}`);
+        if (!projectRes.data.results || projectRes.data.results.length === 0) {
+          this.$message.error('未找到对应项目');
+          return;
+        }
+        const projectId = projectRes.data.results[0].id;
+
+        const res = await request.get(`/api/api-test/test-cases/?project=${projectId}`);
         this.testCases = res.data.results;
       } catch (err) {
         console.error('加载用例失败', err);
+        this.$message.error('加载用例失败，请重试');
       }
     },
     // 保存接口用例
     async saveTestCase() {
       try {
-        const project = await request.get(`/core/projects/?name=${this.currentProjectName}`);
-        const projectId = project.data.results[0].id;
+        const projectRes = await request.get(`/api/core/projects/?name=${this.currentProjectName}`);
+        if (!projectRes.data.results || projectRes.data.results.length === 0) {
+          this.$message.error('未找到对应项目');
+          return;
+        }
+        const projectId = projectRes.data.results[0].id;
 
-        await request.post('/api-test/test-cases/', {
+        await request.post('/api/api-test/test-cases/', {
           ...this.formData,
           project: projectId
         });
@@ -615,22 +705,187 @@ export default {
         this.loadTestCases();
       } catch (err) {
         console.error('保存失败', err);
+        this.$message.error('保存失败，请重试');
       }
     },
     // 发送接口请求
     async sendRequest() {
       try {
-        const response = await axios({
-          method: this.formData.method,
-          url: this.formData.url,
-          headers: this.formData.headers ? JSON.parse(this.formData.headers) : {},
-          params: this.formData.params ? JSON.parse(this.formData.params) : {},
-          data: this.formData.body ? JSON.parse(this.formData.body) : {}
-        });
-        this.$refs.responseView.setResponse(response);
+        // 组合完整URL
+        const fullUrl = this.host + (this.endpoint ? '/' + this.endpoint : '');
+        if (!fullUrl) {
+          this.$message.error('请输入完整URL');
+          return;
+        }
+
+        // 收集请求参数
+        const requestData = {
+          method: this.selectedMethod,
+          url: fullUrl,
+          headers: this.headers.reduce((obj, item) => {
+            if (item.key) obj[item.key] = item.value;
+            return obj;
+          }, {}),
+          params: this.params.reduce((obj, item) => {
+            if (item.key) obj[item.key] = item.value;
+            return obj;
+          }, {})
+        };
+
+        // 添加请求体
+        if (this.bodyType === 'raw' && this.rawBodyContent) {
+          try {
+            requestData.data = this.rawBodyType === 'json'
+              ? JSON.parse(this.rawBodyContent)
+              : this.rawBodyContent;
+          } catch (e) {
+            this.$message.error('请求体格式错误');
+            return;
+          }
+        } else if (this.bodyType === 'form-data') {
+          const formData = new FormData();
+          this.formDataFields.forEach(field => {
+            if (field.key) formData.append(field.key, field.value);
+          });
+          requestData.data = formData;
+        }
+
+        // 添加认证信息
+        if (this.authType === 'basic' && this.authData.username && this.authData.password) {
+          requestData.auth = {
+            username: this.authData.username,
+            password: this.authData.password
+          };
+        } else if (this.authType === 'bearer' && this.authData.token) {
+          requestData.headers.Authorization = `Bearer ${this.authData.token}`;
+        }
+
+        // 记录请求时间
+        const startTime = Date.now();
+        const response = await axios(requestData);
+        const endTime = Date.now();
+
+        // 处理响应数据
+        this.responseTime = endTime - startTime;
+        this.responseData = response;
+        this.responseError = null;
+
+        // 估算响应大小
+        this.responseSize = JSON.stringify(response.data).length;
+
+        // 模拟时间线数据（实际项目中应从性能API获取）
+        this.timelineData = {
+          dns: 10,
+          connect: 20,
+          send: 15,
+          wait: 40,
+          receive: 15,
+          dnsMs: Math.round(this.responseTime * 0.1),
+          connectMs: Math.round(this.responseTime * 0.2),
+          sendMs: Math.round(this.responseTime * 0.15),
+          waitMs: Math.round(this.responseTime * 0.4),
+          receiveMs: Math.round(this.responseTime * 0.15)
+        };
+
       } catch (err) {
-        this.$refs.responseView.setError(err.response);
+        console.error('请求失败', err);
+        this.responseError = err.response?.data || err.message;
+        this.responseData = err.response || null;
+        this.responseTime = 0;
       }
+    },
+    // 格式化响应数据
+    formatResponseData() {
+      if (!this.responseData) return '';
+      if (this.responseViewFormat === 'raw') {
+        return JSON.stringify(this.responseData.data);
+      }
+      return JSON.stringify(this.responseData.data, null, 2);
+    },
+    // 复制响应
+    copyResponse() {
+      if (!this.responseData) return;
+      const text = this.formatResponseData();
+      navigator.clipboard.writeText(text).then(() => {
+        this.$message.success('复制成功');
+      }).catch(() => {
+        this.$message.error('复制失败');
+      });
+    },
+    // 保存响应（作为测试用例）
+    saveResponse() {
+      if (!this.responseData) return;
+      this.showAddTestCaseModal = true;
+      this.newTestCase.url = this.host + (this.endpoint ? '/' + this.endpoint : '');
+      this.newTestCase.method = this.selectedMethod;
+    },
+    // 添加测试用例
+    async handleAddTestCase() {
+      try {
+        const projectRes = await request.get(`/api/core/projects/?name=${this.currentProjectName}`);
+        if (!projectRes.data.results || projectRes.data.results.length === 0) {
+          this.$message.error('未找到对应项目');
+          return;
+        }
+        const projectId = projectRes.data.results[0].id;
+
+        await request.post('/api/api-test/test-cases/', {
+          ...this.newTestCase,
+          project: projectId
+        });
+        this.$message.success('测试用例添加成功');
+        this.showAddTestCaseModal = false;
+        this.newTestCase = { name: '', url: '', method: 'GET', description: '' };
+        this.loadTestCases();
+      } catch (err) {
+        console.error('添加测试用例失败', err);
+        this.$message.error('添加测试用例失败，请重试');
+      }
+    },
+    // 删除测试用例
+    async handleDeleteTestCase(index, name) {
+      if (confirm(`确定要删除测试用例「${name}」吗？`)) {
+        try {
+          const testCase = this.testCases[index];
+          await request.delete(`/api/api-test/test-cases/${testCase.id}/`);
+          this.testCases.splice(index, 1);
+          this.$message.success('删除成功');
+        } catch (err) {
+          console.error('删除失败', err);
+          this.$message.error('删除失败，请重试');
+        }
+      }
+    },
+    // 参数操作
+    addParam() {
+      this.params.push({ key: '', value: '', description: '' });
+    },
+    removeParam(index) {
+      this.params.splice(index, 1);
+    },
+    // 请求头操作
+    addHeader() {
+      this.headers.push({ key: '', value: '' });
+    },
+    removeHeader(index) {
+      this.headers.splice(index, 1);
+    },
+    // 表单数据操作
+    addFormDataField() {
+      this.formDataFields.push({ key: '', value: '', type: 'text' });
+    },
+    removeFormDataField(index) {
+      this.formDataFields.splice(index, 1);
+    },
+    updateFormFieldType(index, type) {
+      this.formDataFields[index].type = type;
+    },
+    // 弹窗回调
+    handleSuccessConfirm() {
+      this.showSuccessModal = false;
+    },
+    handleFailConfirm() {
+      this.showFailModal = false;
     }
   }
 };

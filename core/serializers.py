@@ -1,3 +1,4 @@
+from django.core.validators import MinLengthValidator
 from rest_framework import serializers
 from .models import User, Project
 
@@ -8,7 +9,12 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[MinLengthValidator(8, message="密码长度不能少于8位")]
+    )
+
 
     class Meta:
         model = User
