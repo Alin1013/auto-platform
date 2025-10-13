@@ -55,6 +55,7 @@
 
 <script>
 import SuccessModal from '@/components/SuccessModal.vue';
+import request from '@/utils/request';
 
 export default {
   name: 'NewOption',
@@ -84,7 +85,7 @@ export default {
       };
       try {
         // 修复：使用定义好的 projectData 变量
-        const response = await this.$axios.post('http://localhost:8080/api/projects/', projectData);
+        const response = await request.post('/core/projects/', projectData);
         if (response.status === 201) {  // 创建成功
           this.showModal = true;
         }

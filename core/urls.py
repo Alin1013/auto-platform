@@ -6,6 +6,7 @@ from .views import RegisterView, AvatarUploadView, ProjectViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer
+from rest_framework.response import Response
 
 router = DefaultRouter()
 # 显式指定 basename='project'，解决自动推断失败问题

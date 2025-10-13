@@ -1,17 +1,21 @@
 import axios from 'axios';
+import store from '../store';
 
 const request = axios.create({
-  baseURL: 'http://localhost:8080/api',  // 后端API基础地址
+  baseURL: '/api',  // 后端API基础地址
   timeout: 5000
 });
 
-// 请求拦截器（添加Token）
-axios.interceptors.request.use(config => {
-  const token = localStorage.getItem('accessToken');
+// 请求拦截器：添加 Token
+request.interceptors.request.use(config => {
+  const token = store.state.token;
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`; // 注意Bearer后有空格
+    // JWT 标准格式：Bearer + 空格 + Token
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
+}, error => {
+  return Promise.reject(error);
 });
 // 响应拦截器（处理Token过期）
 request.interceptors.response.use(
@@ -22,7 +26,7 @@ request.interceptors.response.use(
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem('refresh_token');
       try {
-        const res = await axios.post('/api/core/token/refresh/', {
+        const res = await axios.post('/core/token/refresh/', {
           refresh: refreshToken
         });
         localStorage.setItem('access_token', res.data.access);

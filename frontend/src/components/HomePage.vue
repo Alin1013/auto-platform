@@ -134,11 +134,12 @@ export default {
     // 获取当前登录用户信息
     async fetchUserInfo() {
       try {
-        const response = await request.get('/user/me/');
+        const response = await request.get('/core/user/me/');
         this.$store.commit('SET_USER_INFO', {
           username: response.data.username,
           avatarUrl: response.data.avatar
         });
+        this.$store.commit('UPDATE_AVATAR', response.data.avatar);
       } catch (error) {
         console.error('获取用户信息失败:', error);
         // 失败时不影响主流程，继续使用默认头像
@@ -162,7 +163,7 @@ export default {
 
     async loadProjects() {
       try {
-        const response = await request.get('/api/core/projects/');
+        const response = await request.get('/core/projects/');
         const data = response.data || {};
 
         const projectList = Array.isArray(data.results)
@@ -274,7 +275,8 @@ export default {
         this.isDeleting = true;
         this.deleteingProjectId = this.deleteProjectId;
 
-        await request.delete(`/api/projects/${this.deleteProjectId}/`);
+        await request.delete(`/core/projects/${this.deleteProjectId}/`);
+
 
         this.projects = this.projects.filter(p => p.id !== this.deleteProjectId);
         this.showModal(`项目「${this.projectName}」删除成功！`, 'success');

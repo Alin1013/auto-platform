@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import HttpResponse  # 新增
+from django.http import HttpResponse
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 # 定义根路径视图
 def home(request):
@@ -14,4 +15,6 @@ urlpatterns = [
     path('api/core/', include('core.urls')),
     path('api/api-test/', include('api.urls')),
     path('api/ui-test/', include('ui.urls')),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

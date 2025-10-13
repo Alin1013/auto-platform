@@ -3,8 +3,8 @@ import os
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # 默认为5分钟，延长至1小时
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),  # 延长至2小时
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
 }
 BASE_DIR = Path(__file__).resolve().parent.parent
 

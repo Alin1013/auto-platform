@@ -84,10 +84,15 @@ export default {
   methods: {
     async handleLogin() {
       try {
-        const res = await request.post('/api/token/', this.loginForm);
-        localStorage.setItem('access_token', res.data.access);
-        localStorage.setItem('refresh_token', res.data.refresh);
-        this.router.push('/home');
+        const res = await request.post('/core/token/', this.loginForm);
+        const { access } = res.data;  // JWT 的 access_token
+        // 调用 Vuex 保存用户信息和 Token
+        this.$store.commit('LOGIN', {
+          userInfo: res.data.user || {},  // 如有用户信息可一并存储
+          token: access
+        });
+        // 跳转首页
+        this.$router.push('/home');
       } catch (err) {
         this.$message.error('用户名或密码错误');
       }

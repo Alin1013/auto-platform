@@ -120,5 +120,22 @@ const store = createStore({
 export function setupStore(app) {
   app.use(store);
 }
-
-export default store;
+export default createStore({
+  state: {
+    isLogin: false,
+    userInfo: {},
+    token: null  // 新增：存储 access_token
+  },
+  mutations: {
+    LOGIN(state, payload) {
+      state.isLogin = true;
+      state.userInfo = { ...state.userInfo, ...payload.userInfo };
+      state.token = payload.token;  // 保存 Token
+    },
+    LOGOUT(state) {
+      state.isLogin = false;
+      state.userInfo = {};
+      state.token = null;  // 清除 Token
+    }
+  }
+});
